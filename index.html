@@ -261,8 +261,8 @@
 
         .btn-copy {
             background: linear-gradient(135deg, #364d6b, #4a6382);
-            margin-top: 1rem;
-            width: 100%;
+            min-width: 160px;
+            margin-left: auto;
         }
 
         .btn-load {
@@ -351,7 +351,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
             gap: 1rem;
             flex-wrap: wrap;
         }
@@ -449,6 +449,10 @@
             .grid-2 {
                 grid-template-columns: 1fr;
             }
+            
+            .btn-copy {
+                margin-left: 0;
+            }
         }
     </style>
 </head>
@@ -508,18 +512,14 @@
                         <i class="fas fa-check-double"></i>
                         Finalizar e Emitir Relatório
                     </button>
-                </div>
-            </div>
-
-            <div id="resultado-ativacao" class="relatorio-final">
-                <div class="relatorio-header">
-                    <span></span>
-                    <button onclick="copiarRelatorio()" class="btn-copy">
+                    <button onclick="copiarRelatorio()" class="btn-copy" style="display: none;">
                         <i class="fas fa-copy"></i>
                         Copiar Relatório
                     </button>
                 </div>
             </div>
+
+            <div id="resultado-ativacao" class="relatorio-final"></div>
         </div>
 
         <!-- Aba 2: Retirada de Tempo -->
@@ -638,17 +638,8 @@
         function copiarRelatorio() {
             const resultadoDiv = document.getElementById("resultado-ativacao");
             
-            // Clona o elemento para não modificar o original
-            const clone = resultadoDiv.cloneNode(true);
-            
-            // Remove o botão de cópia do clone
-            const btnClone = clone.querySelector('.btn-copy');
-            if (btnClone) {
-                btnClone.remove();
-            }
-            
-            // Pega o texto limpo
-            const relatorioTexto = clone.innerText.trim();
+            // Pega apenas o texto do relatório
+            const relatorioTexto = resultadoDiv.innerText.trim();
             
             if (!relatorioTexto) {
                 alert('Nenhum relatório para copiar!');
@@ -1010,10 +1001,11 @@
             // Salvar relatório no localStorage
             salvarRelatorio(data, dadosParaSalvar);
 
-            // Atualiza o elemento com o relatório (mantendo o botão)
-            const resultadoDiv = document.getElementById("resultado-ativacao");
-            const botaoHtml = '<div class="relatorio-header"><span></span><button onclick="copiarRelatorio()" class="btn-copy"><i class="fas fa-copy"></i> Copiar Relatório</button></div>';
-            resultadoDiv.innerHTML = botaoHtml + relatorio;
+            // Mostrar o botão de copiar
+            document.querySelector('.btn-copy').style.display = 'inline-flex';
+            
+            // Atualiza o elemento com o relatório
+            document.getElementById("resultado-ativacao").innerHTML = relatorio;
         }
 
         function formatarData(dataISO) {
@@ -1179,6 +1171,9 @@
             if (!document.getElementById("data-retirada").value) {
                 document.getElementById("data-retirada").value = hoje;
             }
+            
+            // Esconder botão de copiar inicialmente
+            document.querySelector('.btn-copy').style.display = 'none';
         };
     </script>
 </body>
