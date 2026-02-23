@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retirada de Tempo · Design Profissional</title>
+    <!-- Fonte moderna e ícone sutil (Font Awesome via CDN para ícones) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(145deg, #e9eff7 0%, #dbe4f0 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 880px;
+            width: 100%;
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 32px;
+            box-shadow: 0 20px 40px -8px rgba(18, 35, 60, 0.25), 0 8px 16px -6px rgba(0,20,50,0.15);
+            padding: 2.2rem 2.5rem;
+            border: 1px solid rgba(255,255,255,0.5);
+            transition: all 0.2s ease;
+        }
+
+        h2 {
+            font-size: 2rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            color: #13294b;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border-bottom: 2px solid rgba(23, 62, 115, 0.15);
+            padding-bottom: 0.75rem;
+            margin-bottom: 2rem;
+        }
+
+        h2 i {
+            color: #2a5c9a;
+            font-size: 2rem;
+            background: white;
+            padding: 0.5rem;
+            border-radius: 18px;
+            box-shadow: 0 6px 12px -6px rgba(0, 50, 100, 0.3);
+        }
+
+        h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #1d3b66;
+            margin: 1.5rem 0 0.75rem 0;
+            letter-spacing: -0.01em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        h3 i {
+            color: #3a6cb0;
+            font-size: 1.3rem;
+        }
+
+        label {
+            font-weight: 550;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            color: #1f3a5f;
+            display: block;
+            margin-top: 1rem;
+            margin-bottom: 0.2rem;
+        }
+
+        input, select, textarea, button {
+            width: 100%;
+            padding: 0.85rem 1.2rem;
+            font-size: 1rem;
+            border-radius: 20px;
+            border: 1.5px solid #dfe7f0;
+            background: white;
+            transition: 0.15s;
+            outline: none;
+            color: #102331;
+            font-weight: 450;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        }
+
+        /* Ajuste específico para o select - seta mais afastada da borda */
+        select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%231f4e8c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+            background-repeat: no-repeat;
+            background-position: right 1.2rem center;
+            background-size: 1.2rem;
+            padding-right: 2.8rem;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: #2f6bb0;
+            box-shadow: 0 4px 12px rgba(33, 92, 172, 0.25);
+        }
+
+        textarea {
+            min-height: 85px;
+            resize: vertical;
+        }
+
+        /* ESTILO DOS BOTÕES - VERSÃO MELHORADA */
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin: 1.5rem 0 0.5rem 0;
+            flex-wrap: wrap;
+        }
+
+        .button-group button {
+            flex: 1;
+            min-width: 160px;
+            margin: 0;
+            padding: 1rem 0.8rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            letter-spacing: 0.3px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 8px 16px -6px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .button-group button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .button-group button:hover::before {
+            left: 100%;
+        }
+
+        .button-group button i {
+            font-size: 1.1rem;
+            transition: transform 0.2s ease;
+        }
+
+        .button-group button:hover i {
+            transform: scale(1.1);
+        }
+
+        .button-group button:nth-child(1) {
+            background: linear-gradient(135deg, #1f4e8c, #2a5c9a);
+            color: white;
+            box-shadow: 0 10px 20px -8px #1f4e8c;
+        }
+
+        .button-group button:nth-child(1):hover {
+            background: linear-gradient(135deg, #0e3a6b, #1f4e8c);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 25px -8px #0e3a6b;
+        }
+
+        .button-group button:nth-child(2) {
+            background: linear-gradient(135deg, #2c405c, #364d6b);
+            color: white;
+            box-shadow: 0 10px 20px -8px #2c405c;
+        }
+
+        .button-group button:nth-child(2):hover {
+            background: linear-gradient(135deg, #1a2b41, #2c405c);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 25px -8px #1a2b41;
+        }
+
+        .button-group button:nth-child(3) {
+            background: linear-gradient(135deg, #9e4244, #b14d4f);
+            color: white;
+            box-shadow: 0 10px 20px -8px #9e4244;
+        }
+
+        .button-group button:nth-child(3):hover {
+            background: linear-gradient(135deg, #7a3335, #9e4244);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 25px -8px #7a3335;
+        }
+
+        .button-group button:active {
+            transform: translateY(0px);
+            box-shadow: 0 5px 12px -4px rgba(0,0,0,0.3);
+        }
+
+        .total-box {
+            background: linear-gradient(115deg, #e1edfc 0%, #d2e3fc 100%);
+            border-radius: 28px;
+            padding: 1.3rem 2rem;
+            margin: 1.8rem 0 1.2rem 0;
+            font-weight: 650;
+            font-size: 1.3rem;
+            color: #093057;
+            border: 1px solid #b7d1f0;
+            box-shadow: inset 0 2px 4px rgba(255,255,255,0.8), 0 6px 12px -6px #94b3da;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            backdrop-filter: blur(4px);
+        }
+
+        .total-box i {
+            font-size: 2rem;
+            color: #236bb5;
+        }
+
+        hr {
+            border: none;
+            height: 2px;
+            background: linear-gradient(90deg, #c0d4f0, #ffffff);
+            margin: 2rem 0 1.2rem 0;
+        }
+
+        .separador-linha {
+            margin: 2rem 0;
+            border-top: 2px dashed #a0b8d6;
+            width: 100%;
+        }
+
+        #resultado {
+            margin-top: 2rem;
+            background: #f9fcff;
+            padding: 1.8rem 2rem;
+            border-radius: 28px;
+            box-shadow: 0 10px 20px -10px rgba(0, 40, 80, 0.2);
+            border: 1px solid #e0ecfe;
+            font-family: 'Inter', monospace;
+            line-height: 1.8;
+            white-space: pre-line;
+        }
+
+        .resultado-titulo {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #13294b;
+            margin-bottom: 1.5rem;
+            text-align: left;
+            border-bottom: 2px solid rgba(23, 62, 115, 0.15);
+            padding-bottom: 0.5rem;
+        }
+
+        .inline-icon {
+            margin-right: 0.4rem;
+            color: #3867a5;
+        }
+
+        /* responsividade */
+        @media (max-width: 600px) {
+            .container {
+                padding: 1.5rem;
+            }
+            h2 {
+                font-size: 1.6rem;
+            }
+            .total-box {
+                font-size: 1.1rem;
+                padding: 1rem 1.5rem;
+            }
+            .button-group {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+            .button-group button {
+                min-width: 140px;
+                flex: 1 1 auto;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .button-group {
+                flex-direction: column;
+            }
+            .button-group button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>
+        <i class="fas fa-hourglass-half"></i> 
+        Retirada de Tempo
+    </h2>
+
+    <!-- data e técnico lado a lado usando grid -->
+    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem; align-items: end;">
+        <div>
+            <label><i class="far fa-calendar-alt inline-icon"></i>Data</label>
+            <input type="date" id="data" value="">
+        </div>
+        <div>
+            <label><i class="fas fa-user-cog inline-icon"></i>Técnico</label>
+            <select id="tecnico">
+                <option>Eriton Santos De Oliveira</option>
+                <option>Quera Abraao De Souza Carvalho</option>
+                <option>Douglas Warteloo Araujo Do Vale</option>
+                <option>Francisco Avelansh Martins Sousa</option>
+                <option>Rangel Fernandes De Sousa</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Total elegante com ícone -->
+    <div class="total-box" id="tempoTotal">
+        <i class="fas fa-clock"></i>
+        <span>Tempo a Retirar: <strong>0 minutos</strong></span>
+    </div>
+
+    <!-- hora inicial / final em grid dois -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+        <div>
+            <label><i class="fas fa-play-circle inline-icon"></i>Hora Inicial</label>
+            <input type="time" id="inicio" value="">
+        </div>
+        <div>
+            <label><i class="fas fa-stop-circle inline-icon"></i>Hora Final</label>
+            <input type="time" id="fim" value="">
+        </div>
+    </div>
+
+    <label><i class="fas fa-pen inline-icon"></i>Motivo</label>
+    <textarea id="motivo" placeholder="Descreva o motivo da retirada..."></textarea>
+
+    <!-- BOTÕES LADO A LADO COM DESIGN MELHORADO -->
+    <div class="button-group">
+        <button onclick="adicionar()">
+            <i class="fas fa-plus-circle"></i> 
+            <span>Adicionar período</span>
+        </button>
+        <button onclick="finalizar()">
+            <i class="fas fa-check-double"></i> 
+            <span>Finalizar dia</span>
+        </button>
+        <button onclick="limparData()">
+            <i class="fas fa-trash-alt"></i> 
+            <span>Limpar esta data</span>
+        </button>
+    </div>
+
+    <hr>
+
+    <!-- Resultado vai aparecer estilizado aqui -->
+    <div id="resultado"></div>
+</div>
+
+<script>
+    let registros = JSON.parse(localStorage.getItem("registros")) || [];
+
+    function salvarLocal(){
+        localStorage.setItem("registros", JSON.stringify(registros));
+    }
+
+    function calcularMinutos(inicio, fim) {
+        let [h1, m1] = inicio.split(":").map(Number);
+        let [h2, m2] = fim.split(":").map(Number);
+
+        let minutosInicio = h1 * 60 + m1;
+        let minutosFim = h2 * 60 + m2;
+
+        if (minutosFim <= minutosInicio) {
+            alert("Hora final deve ser maior que a inicial.");
+            return null;
+        }
+        return minutosFim - minutosInicio;
+    }
+
+    function formatarTempo(minutos) {
+        if (minutos === 0) return "0 minutos";
+
+        let horas = Math.floor(minutos / 60);
+        let mins = minutos % 60;
+        let partes = [];
+
+        if (horas === 1) partes.push("1 hora");
+        else if (horas > 1) partes.push(horas + " horas");
+
+        if (mins === 1) partes.push("1 minuto");
+        else if (mins > 1) partes.push(mins + " minutos");
+
+        return partes.join(" e ");
+    }
+
+    function atualizarTempoTotal(){
+        let tecnico = document.getElementById("tecnico").value;
+        let data = document.getElementById("data").value;
+
+        let total = registros
+            .filter(r => r.tecnico === tecnico && r.data === data)
+            .reduce((acc, r) => acc + r.minutos, 0);
+
+        document.getElementById("tempoTotal").innerHTML =
+            `<i class="fas fa-clock"></i> <span>Tempo a Retirar: <strong>${formatarTempo(total)}</strong></span>`;
+    }
+
+    function adicionar() {
+        let data = document.getElementById("data").value;
+        let tecnico = document.getElementById("tecnico").value;
+        let inicio = document.getElementById("inicio").value;
+        let fim = document.getElementById("fim").value;
+        let motivo = document.getElementById("motivo").value.trim();
+
+        if (!data || !inicio || !fim || !motivo) {
+            alert("Preencha todos os campos!");
+            return;
+        }
+
+        let minutos = calcularMinutos(inicio, fim);
+        if (minutos === null) return;
+
+        registros.push({ data, tecnico, motivo, minutos });
+        salvarLocal();
+
+        atualizarTempoTotal();
+
+        document.getElementById("inicio").value = "";
+        document.getElementById("fim").value = "";
+        document.getElementById("motivo").value = "";
+    }
+
+    function formatarDataISO(dataISO) {
+        let [ano, mes, dia] = dataISO.split("-");
+        return `${dia}/${mes}/${ano}`;
+    }
+
+    function finalizar() {
+        let dataSelecionada = document.getElementById("data").value;
+        let resultadoDiv = document.getElementById("resultado");
+        resultadoDiv.innerHTML = "";
+
+        let registrosDaData = registros.filter(r => r.data === dataSelecionada);
+
+        if (registrosDaData.length === 0) {
+            resultadoDiv.innerHTML = "Nenhum registro nesta data.";
+            return;
+        }
+
+        let tecnicos = [...new Set(registrosDaData.map(r => r.tecnico))];
+
+        tecnicos.forEach((tecnico, index) => {
+            let lista = registrosDaData.filter(r => r.tecnico === tecnico);
+            let total = lista.reduce((acc, r) => acc + r.minutos, 0);
+
+            let bloco = document.createElement("div");
+            bloco.style.marginBottom = "2rem";
+
+            bloco.innerHTML += `Retirada De Tempo<br><br>`;
+            bloco.innerHTML += `Data: ${formatarDataISO(dataSelecionada)}<br>`;
+            bloco.innerHTML += `Técnico: ${tecnico}<br>`;
+            bloco.innerHTML += `Tempo a Retirar: ${formatarTempo(total)}<br><br>`;
+
+            lista.forEach(r => {
+                bloco.innerHTML += `Tempo: ${formatarTempo(r.minutos)}.<br>`;
+                bloco.innerHTML += `Motivo: ${r.motivo}<br><br>`;
+            });
+
+            resultadoDiv.appendChild(bloco);
+
+            if (index < tecnicos.length - 1) {
+                let separador = document.createElement("div");
+                separador.className = "separador-linha";
+                resultadoDiv.appendChild(separador);
+            }
+        });
+    }
+
+    function limparData(){
+        let dataSelecionada = document.getElementById("data").value;
+
+        if(!confirm("Deseja realmente excluir todos os registros desta data?")){
+            return;
+        }
+
+        registros = registros.filter(r => r.data !== dataSelecionada);
+        salvarLocal();
+
+        document.getElementById("resultado").innerHTML = "";
+        atualizarTempoTotal();
+
+        alert("Registros da data removidos com sucesso!");
+    }
+
+    document.getElementById("tecnico").addEventListener("change", atualizarTempoTotal);
+    document.getElementById("data").addEventListener("change", atualizarTempoTotal);
+
+    window.onload = function(){
+        atualizarTempoTotal();
+    };
+</script>
+
+</body>
+</html>
