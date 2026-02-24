@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -147,7 +148,9 @@
             margin-bottom: 0.3rem;
         }
 
-        input, select, textarea {
+        input,
+        select,
+        textarea {
             width: 100%;
             padding: 0.85rem 1.2rem;
             font-size: 1rem;
@@ -162,7 +165,9 @@
             margin-bottom: 1rem;
         }
 
-        input:focus, select:focus, textarea:focus {
+        input:focus,
+        select:focus,
+        textarea:focus {
             border-color: #2f6bb0;
             box-shadow: 0 4px 12px rgba(33, 92, 172, 0.25);
         }
@@ -363,7 +368,8 @@
             flex-wrap: wrap;
         }
 
-        .col-md-3, .col-md-6 {
+        .col-md-3,
+        .col-md-6 {
             flex: 1 1 200px;
         }
 
@@ -382,7 +388,7 @@
             font-size: 1.3rem;
             color: #093057;
             border: 1px solid #b7d1f0;
-            box-shadow: inset 0 2px 4px rgba(255,255,255,0.8), 0 6px 12px -6px #94b3da;
+            box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.8), 0 6px 12px -6px #94b3da;
             display: flex;
             align-items: center;
             gap: 0.8rem;
@@ -449,13 +455,14 @@
             .grid-2 {
                 grid-template-columns: 1fr;
             }
-            
+
             .btn-copy {
                 margin-left: 0;
             }
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <!-- Menu de abas -->
@@ -511,6 +518,10 @@
                     <button onclick="emitirRelatorio()" class="btn-primary">
                         <i class="fas fa-check-double"></i>
                         Finalizar e Emitir Relatório
+                    </button>
+                    <button onclick="apagarTodosRelatorios()" class="btn-danger">
+                        <i class="fas fa-trash"></i>
+                        Apagar Todos Relatórios
                     </button>
                     <button onclick="copiarRelatorio()" class="btn-copy" style="display: none;">
                         <i class="fas fa-copy"></i>
@@ -588,21 +599,21 @@
             const diasParaExpirar = 7;
             const agora = new Date().getTime();
             const msPorDia = 24 * 60 * 60 * 1000;
-            
+
             // Limpar registros de retirada
             let registros = JSON.parse(localStorage.getItem("registros")) || [];
             let registrosFiltrados = registros.filter(item => {
                 if (!item.dataSalva) return true; // Itens antigos sem data
-                
+
                 const dataItem = new Date(item.dataSalva).getTime();
                 const diferencaDias = (agora - dataItem) / msPorDia;
                 return diferencaDias <= diasParaExpirar;
             });
-            
+
             if (registros.length !== registrosFiltrados.length) {
                 localStorage.setItem("registros", JSON.stringify(registrosFiltrados));
             }
-            
+
             // Limpar relatórios salvos
             for (let i = 0; i < localStorage.length; i++) {
                 const chave = localStorage.key(i);
@@ -637,15 +648,15 @@
         // ========== FUNÇÃO PARA COPIAR RELATÓRIO ==========
         function copiarRelatorio() {
             const resultadoDiv = document.getElementById("resultado-ativacao");
-            
+
             // Pega apenas o texto do relatório
             const relatorioTexto = resultadoDiv.innerText.trim();
-            
+
             if (!relatorioTexto) {
                 alert('Nenhum relatório para copiar!');
                 return;
             }
-            
+
             // Usando a API Clipboard moderna
             navigator.clipboard.writeText(relatorioTexto).then(() => {
                 // Feedback visual
@@ -653,7 +664,7 @@
                 const textoOriginal = btn.innerHTML;
                 btn.innerHTML = '<i class="fas fa-check"></i> Copiado!';
                 btn.style.background = 'linear-gradient(135deg, #28a745, #34ce57)';
-                
+
                 setTimeout(() => {
                     btn.innerHTML = textoOriginal;
                     btn.style.background = 'linear-gradient(135deg, #364d6b, #4a6382)';
@@ -664,14 +675,14 @@
                 textArea.value = relatorioTexto;
                 document.body.appendChild(textArea);
                 textArea.select();
-                
+
                 try {
                     document.execCommand('copy');
                     const btn = document.querySelector('.btn-copy');
                     const textoOriginal = btn.innerHTML;
                     btn.innerHTML = '<i class="fas fa-check"></i> Copiado!';
                     btn.style.background = 'linear-gradient(135deg, #28a745, #34ce57)';
-                    
+
                     setTimeout(() => {
                         btn.innerHTML = textoOriginal;
                         btn.style.background = 'linear-gradient(135deg, #364d6b, #4a6382)';
@@ -679,7 +690,7 @@
                 } catch (err) {
                     alert('Erro ao copiar relatório. Selecione manualmente e copie (Ctrl+C).');
                 }
-                
+
                 document.body.removeChild(textArea);
             });
         }
@@ -688,14 +699,14 @@
         function adicionarJustificativa(container) {
             const justificativaItem = document.createElement("div");
             justificativaItem.className = "justificativa-item";
-            
+
             justificativaItem.innerHTML = `
                 <input type="text" class="justificativa-texto" placeholder="Digite a justificativa...">
                 <button class="btn-remove-just" onclick="removerJustificativa(this)">
                     <i class="fas fa-times"></i>
                 </button>
             `;
-            
+
             container.appendChild(justificativaItem);
         }
 
@@ -741,14 +752,20 @@
 
         function processarTabela(texto) {
             if (!texto || texto.trim() === "") return null;
-            
+
             const linhas = texto.trim().split("\n");
             if (linhas.length <= 1) return null;
 
             const cabecalho = linhas[0].split("\t");
 
-            const indexServico = cabecalho.findIndex(c => c.toLowerCase().includes("serviço"));
-            const indexStatus = cabecalho.findIndex(c => c.toLowerCase().includes("feito"));
+            const indexServico = cabecalho.findIndex(c =>
+                c.toLowerCase().includes("serviço") ||
+                c.toLowerCase().includes("servico")
+            );
+
+            const indexStatus = cabecalho.findIndex(c =>
+                c.toLowerCase().includes("feito")
+            );
 
             if (indexServico === -1 || indexStatus === -1) return null;
 
@@ -763,12 +780,27 @@
             let mapa = {};
 
             for (let i = 1; i < linhas.length; i++) {
+
+                const linhaCompleta = linhas[i].toLowerCase().trim();
+
+                // 🚫 IGNORA A LINHA INTEIRA SE CONTIVER QUALQUER UMA DESSAS PALAVRAS
+                if (
+                    linhaCompleta.includes("pausa") ||
+                    linhaCompleta.includes("retirada de tempo") ||
+                    linhaCompleta.includes("chuva")
+                ) {
+                    continue;
+                }
+
                 const colunas = linhas[i].split("\t");
 
-                const servico = colunas[indexServico]?.trim();
-                const status = colunas[indexStatus]?.trim().toUpperCase();
+                const servicoOriginal = colunas[indexServico]?.trim();
+                const statusOriginal = colunas[indexStatus]?.trim();
 
-                if (!servico || !status) continue;
+                if (!servicoOriginal || !statusOriginal) continue;
+
+                const servicoLower = servicoOriginal.toLowerCase();
+                const status = statusOriginal.toUpperCase();
 
                 planejamento++;
 
@@ -782,19 +814,20 @@
                     continue;
                 }
 
-                if (status === "OK") {
+                if (status === "OK" || status === "FEITO") {
+
                     execucao++;
 
-                    if (!mapa[servico]) mapa[servico] = 0;
-                    mapa[servico]++;
+                    if (!mapa[servicoOriginal]) mapa[servicoOriginal] = 0;
+                    mapa[servicoOriginal]++;
 
-                    if (servico.toLowerCase() === "encerramento tratativa cs" || servico.toLowerCase().includes("tratativa cs"))
+                    if (servicoLower.includes("tratativa cs"))
                         tratativasCS++;
 
-                    if (servico.toLowerCase() === "infraestrutura")
+                    if (servicoLower.includes("infraestrutura"))
                         infraestrutura++;
 
-                    if (servico.toLowerCase() === "resolução nivel 2" || servico.toLowerCase() === "resolucao nivel 2" || servico.toLowerCase().includes("nivel 2"))
+                    if (servicoLower.includes("nivel 2"))
                         resolucaoN2++;
                 }
             }
@@ -814,13 +847,13 @@
         // Função para buscar retiradas de tempo por técnico e data
         function buscarRetiradasPorTecnicoData(tecnico, data) {
             let registros = JSON.parse(localStorage.getItem("registros")) || [];
-            
+
             // Filtrar registros que correspondem ao técnico e data
-            let retiradas = registros.filter(r => 
-                r.tecnico.toLowerCase().trim() === tecnico.toLowerCase().trim() && 
+            let retiradas = registros.filter(r =>
+                r.tecnico.toLowerCase().trim() === tecnico.toLowerCase().trim() &&
                 r.data === data
             );
-            
+
             return retiradas;
         }
 
@@ -852,7 +885,7 @@
 
             const chave = `relatorio_${data}`;
             const itemSalvo = localStorage.getItem(chave);
-            
+
             if (!itemSalvo) {
                 alert('Nenhum relatório encontrado para esta data!');
                 return;
@@ -861,27 +894,27 @@
             try {
                 const item = JSON.parse(itemSalvo);
                 const dados = item.dados;
-                
+
                 // Limpar equipes existentes
                 document.getElementById("equipes").innerHTML = '';
-                
+
                 // Preencher dados básicos
                 document.getElementById("cidade").value = dados.cidade || '';
                 document.getElementById("responsavel").value = dados.responsavel || '';
-                
+
                 // Recriar equipes
                 if (dados.equipes && dados.equipes.length > 0) {
                     dados.equipes.forEach(equipe => {
                         adicionarEquipe();
                         const blocos = document.querySelectorAll(".equipe-bloco");
                         const bloco = blocos[blocos.length - 1];
-                        
+
                         // Preencher nome do técnico
                         bloco.querySelector('.nomeTecnico').value = equipe.nome || '';
-                        
+
                         // Preencher tabela de dados
                         bloco.querySelector('.tabelaDados').value = equipe.tabela || '';
-                        
+
                         // Recriar justificativas
                         const container = bloco.querySelector('.justificativas-container');
                         if (equipe.justificativas && equipe.justificativas.length > 0) {
@@ -893,7 +926,7 @@
                         }
                     });
                 }
-                
+
                 alert('Relatório carregado com sucesso!');
             } catch (e) {
                 alert('Erro ao carregar relatório!');
@@ -957,13 +990,13 @@
 
                 // ===== JUSTIFICATIVA NUMERADA =====
                 relatorio += `Justificativa:\n`;
-                
+
                 let contadorJustificativas = 1;
-                
+
                 // Busca todas as justificativas manuais deste técnico
                 const justificativasContainer = blocos[i].querySelector(".justificativas-container");
                 const justificativasManuais = [];
-                
+
                 if (justificativasContainer) {
                     const justificativasTextos = justificativasContainer.querySelectorAll(".justificativa-texto");
                     justificativasTextos.forEach(input => {
@@ -975,10 +1008,10 @@
                         }
                     });
                 }
-                
+
                 // Busca as retiradas de tempo para este técnico na mesma data
                 let retiradas = buscarRetiradasPorTecnicoData(nome, data);
-                
+
                 if (retiradas && retiradas.length > 0) {
                     // Adiciona cada motivo numerado
                     retiradas.forEach(retirada => {
@@ -986,7 +1019,7 @@
                         contadorJustificativas++;
                     });
                 }
-                
+
                 relatorio += `\n`;
                 relatorio += `-----------------------------------------------\n\n`;
 
@@ -1003,7 +1036,7 @@
 
             // Mostrar o botão de copiar
             document.querySelector('.btn-copy').style.display = 'inline-flex';
-            
+
             // Atualiza o elemento com o relatório
             document.getElementById("resultado-ativacao").innerHTML = relatorio;
         }
@@ -1083,12 +1116,12 @@
             let minutos = calcularMinutos(inicio, fim);
             if (minutos === null) return;
 
-            registros.push({ 
-                data, 
-                tecnico, 
-                motivo, 
+            registros.push({
+                data,
+                tecnico,
+                motivo,
                 minutos,
-                dataSalva: new Date().toISOString() 
+                dataSalva: new Date().toISOString()
             });
             salvarLocal();
 
@@ -1140,6 +1173,37 @@
             });
         }
 
+        function apagarTodosRelatorios() {
+
+            if (!confirm("⚠️ Deseja realmente apagar TODOS os relatórios salvos no navegador?")) {
+                return;
+            }
+
+            let removidos = 0;
+
+            // Precisamos copiar as chaves primeiro
+            const chaves = [];
+
+            for (let i = 0; i < localStorage.length; i++) {
+                const chave = localStorage.key(i);
+                if (chave && chave.startsWith("relatorio_")) {
+                    chaves.push(chave);
+                }
+            }
+
+            // Agora remover
+            chaves.forEach(chave => {
+                localStorage.removeItem(chave);
+                removidos++;
+            });
+
+            // Limpa tela
+            document.getElementById("resultado-ativacao").innerHTML = "";
+            document.getElementById("equipes").innerHTML = "";
+
+            alert(`✅ ${removidos} relatório(s) apagado(s) com sucesso!`);
+        }
+
         function limparDataRetirada() {
             let dataSelecionada = document.getElementById("data-retirada").value;
 
@@ -1171,10 +1235,11 @@
             if (!document.getElementById("data-retirada").value) {
                 document.getElementById("data-retirada").value = hoje;
             }
-            
+
             // Esconder botão de copiar inicialmente
             document.querySelector('.btn-copy').style.display = 'none';
         };
     </script>
 </body>
+
 </html>
