@@ -701,11 +701,11 @@
             justificativaItem.className = "justificativa-item";
 
             justificativaItem.innerHTML = `
-                <input type="text" class="justificativa-texto" placeholder="Digite a justificativa...">
-                <button class="btn-remove-just" onclick="removerJustificativa(this)">
-                    <i class="fas fa-times"></i>
-                </button>
-            `;
+                    <input type="text" class="justificativa-texto" placeholder="Digite a justificativa...">
+                    <button class="btn-remove-just" onclick="removerJustificativa(this)">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
 
             container.appendChild(justificativaItem);
         }
@@ -721,31 +721,31 @@
             bloco.className = "equipe-bloco";
 
             bloco.innerHTML = `
-                <h5>
-                    <i class="fas fa-user-hard-hat"></i>
-                    Técnico de Campo
-                </h5>
+                    <h5>
+                        <i class="fas fa-user-hard-hat"></i>
+                        Técnico de Campo
+                    </h5>
 
-                <label><i class="fas fa-user inline-icon"></i>Nome</label>
-                <input type="text" class="nomeTecnico" placeholder="Nome do Técnico">
+                    <label><i class="fas fa-user inline-icon"></i>Nome</label>
+                    <input type="text" class="nomeTecnico" placeholder="Nome do Técnico">
 
-                <label><i class="fas fa-table inline-icon"></i>Tabela de Dados</label>
-                <textarea class="tabelaDados" rows="6" placeholder="Cole aqui a tabela do técnico..."></textarea>
+                    <label><i class="fas fa-table inline-icon"></i>Tabela de Dados</label>
+                    <textarea class="tabelaDados" rows="6" placeholder="Cole aqui a tabela do técnico..."></textarea>
 
-                <label><i class="fas fa-pen inline-icon"></i>Justificativas</label>
-                <div class="justificativas-container"></div>
-                
-                <button class="btn-add-just" onclick="adicionarJustificativa(this.previousElementSibling)">
-                    <i class="fas fa-plus-circle"></i> Adicionar Justificativa
-                </button>
-
-                <div class="btn-group" style="margin-top: 1rem;">
-                    <button class="btn-danger" onclick="this.parentElement.parentElement.remove()">
-                        <i class="fas fa-trash-alt"></i>
-                        Remover Técnico
+                    <label><i class="fas fa-pen inline-icon"></i>Justificativas</label>
+                    <div class="justificativas-container"></div>
+                    
+                    <button class="btn-add-just" onclick="adicionarJustificativa(this.previousElementSibling)">
+                        <i class="fas fa-plus-circle"></i> Adicionar Justificativa
                     </button>
-                </div>
-            `;
+
+                    <div class="btn-group" style="margin-top: 1rem;">
+                        <button class="btn-danger" onclick="this.parentElement.parentElement.remove()">
+                            <i class="fas fa-trash-alt"></i>
+                            Remover Técnico
+                        </button>
+                    </div>
+                `;
 
             container.appendChild(bloco);
         }
@@ -771,6 +771,7 @@
 
             let planejamento = 0;
             let execucao = 0;
+            let totalExecutado = 0;
             let remarcacao = 0;
             let cancelamento = 0;
             let tratativasCS = 0;
@@ -779,20 +780,102 @@
 
             let mapa = {};
 
+            const valoresServicos = {
+
+                "ALT. PPPOE": 1,
+                "ALT. SENHA": 1,
+                "APOIO A EQUIPE": 1,
+                "AT. IPTV": 0.5,
+                "AT. WIFI PLUS": 1,
+                "ATIVAÇÃO": 1,
+                "ATIVAÇÃO - FIBRA + WI-FI PLUS": 1.5,
+                "ATIVAÇÃO PRP": 1,
+                "AT. WIFI PRO": 1,
+                "CABO BAIXO": 1,
+                "DES. PORTA": 0.25,
+                "CONF. ROTEAD. C/ VISITA": 1,
+                "EMP EQUI. ESPEC.": 1,
+                "EMP S/ CONEXÃO": 1,
+                "EMP. LENTIDÃO": 1,
+                "EMP. TROCA EQUIP.": 1,
+                "ESCALONAMENTO": 1,
+                "EMP. REDE INTERNA": 1,
+                "EQUIP. ESPECIFICO": 1,
+                "LENTIDÃO": 1,
+                "M.E": 1,
+                "MAPEAR CTO": 1,
+                "MLP": 1,
+                "MMA": 1,
+                "PADRONIZAÇÃO": 1,
+                "PÓS SERVIÇO": 1,
+                "SUP. TELEFONIA": 1,
+                "REATIVAÇÃO": 1,
+                "RECOLHER EQUIP.": 0.25,
+                "RECOLOCAR EQUIP.": 1,
+                "REDE INTERNA": 1,
+                "REDE LIVE": 1,
+                "REMANEJAMENTO": 1,
+                "RETENÇÃO": 1,
+                "SEM CONEXÃO": 1,
+                "SUP. WIFI PLUS": 1,
+                "SUPORTE ATIVO": 1,
+                "TESTE VELOCIDADE": 1,
+                "TROCA EQUIP.": 1,
+                "VISTORIA WIFIPRO": 1,
+                "RECORRÊNCIA": 1,
+                "MAN. WIFI PRO": 1,
+                "APP ESPECÍFICO": 1,
+                "ATENUAÇÃO": 1,
+                "TEL. COM PORTABILIDADE": 1,
+                "TEL. SEM PORTABILIDADE": 1,
+                "ATV - FIBRA + TELEFONIA": 1.5,
+                "ATIVAÇÃO FIBRA + VIRTEX TV": 1.5,
+                "SUPORTE VIRTEX TV": 1,
+                "VIRTEX TV SEM BOX": 0.5,
+                "VIRTEX TV COM BOX": 0.5,
+                "ORGANIZAÇÃO DE CABO": 1,
+                "TROCA DE POSTE": 1,
+                "ADIANTAMENTO DE SERV.": 1,
+                "MIGRAÇÃO": 1,
+                "AT. TECNOLOGICA": 1,
+                "ME+WIFI PLUS": 1.5,
+                "MUD. PASSAGEM DROP": 1,
+                "VISTORIA PRÉ-ATIVAÇÃO": 1,
+                "ATV SVA": 0.5,
+                "MANUTENÇÃO POP": 1,
+                "DESAT. BOX": 0.25,
+                "DES. WIFI PLUS": 0.25,
+                "QUALIDADE COMP.": 1,
+                "AT. WIFI PLUS EMP": 1,
+                "SUP.WIFI PLUS EMP": 1,
+                "ATV- FIBRA+WIFI PRO": 1.5,
+                "ATV WIFI PLUS EMP": 1,
+                "REC+DES. PORTA": 0.5,
+                "PROBLEMA TÉCNICO": 1,
+                "ME + WIFI PLUS": 1.5,
+                "SEM CONEXÃO ACOMP. NOC": 1,
+                "LENTIDÃO ACOMP. NOC": 1,
+                "DES. DE TELEFONIA": 0.25,
+                "ATIVAÇÃO - RÁDIO": 1
+            };
+
             for (let i = 1; i < linhas.length; i++) {
 
                 const linhaCompleta = linhas[i].toLowerCase().trim();
 
-                // 🚫 IGNORA A LINHA INTEIRA SE CONTIVER QUALQUER UMA DESSAS PALAVRAS
                 if (
                     linhaCompleta.includes("pausa") ||
                     linhaCompleta.includes("retirada de tempo") ||
                     linhaCompleta.includes("chuva") ||
                     linhaCompleta.includes("deslocamento") ||
+                    linhaCompleta.includes("almoço") ||
+                    linhaCompleta.includes("almoco") ||
+                    linhaCompleta.includes("dss") ||
+                    linhaCompleta.includes("nenhum") ||
+                    linhaCompleta.includes("auditoria") ||
+                    linhaCompleta.includes("colher assinatura") ||
                     linhaCompleta.includes("banco de horas")
-                ) {
-                    continue;
-                }
+                ) continue;
 
                 const colunas = linhas[i].split("\t");
 
@@ -801,6 +884,7 @@
 
                 if (!servicoOriginal || !statusOriginal) continue;
 
+                const servicoUpper = servicoOriginal.toUpperCase();
                 const servicoLower = servicoOriginal.toLowerCase();
                 const status = statusOriginal.toUpperCase();
 
@@ -820,8 +904,19 @@
 
                     execucao++;
 
+                    let valor = 1;
+
+                    for (let tipo in valoresServicos) {
+                        if (servicoUpper.includes(tipo)) {
+                            valor = valoresServicos[tipo];
+                            break;
+                        }
+                    }
+
+                    totalExecutado += valor;
+
                     if (!mapa[servicoOriginal]) mapa[servicoOriginal] = 0;
-                    mapa[servicoOriginal]++;
+                    mapa[servicoOriginal] += 1;
 
                     if (servicoLower.includes("tratativa cs"))
                         tratativasCS++;
@@ -837,6 +932,7 @@
             return {
                 planejamento,
                 execucao,
+                totalExecutado,
                 remarcacao,
                 cancelamento,
                 tratativasCS,
@@ -988,7 +1084,7 @@
                 }
 
                 relatorio += `\n`;
-                relatorio += `    • Total de Serviços Executados: ${dados.execucao}\n\n`;
+                relatorio += `    • Total de Serviços Executados: ${dados.totalExecutado.toString().replace(".", ",")}\n\n`;
 
                 // ===== JUSTIFICATIVA NUMERADA =====
                 relatorio += `Justificativa:\n`;
