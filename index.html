@@ -1049,12 +1049,16 @@
 
             let relatorio = "";
 
+            // 🔥 TOTAIS GERAIS
+            let totalPlanejamentoGeral = 0;
+            let totalExecutadoGeral = 0;
+            let totalRemarcacaoGeral = 0;
+            let totalCancelamentoGeral = 0;
+
             relatorio += `Relatório de Ativação – ${formatarData(data)} - ${cidade}\n`;
             relatorio += `Responsável: ${responsavel}\n`;
             relatorio += `Número de Equipes: ${totalEquipes}\n\n`;
-            relatorio += `-----------------------------------------------\n\n`;
 
-            // Preparar dados para salvar
             const dadosParaSalvar = {
                 cidade: cidade,
                 responsavel: responsavel,
@@ -1062,11 +1066,19 @@
             };
 
             for (let i = 0; i < nomes.length; i++) {
+
                 const nome = nomes[i].value.trim();
                 const dados = processarTabela(tabelas[i].value);
 
                 if (!nome || !dados) continue;
 
+                // 🔥 SOMA TODOS OS TOTAIS
+                totalPlanejamentoGeral += dados.planejamento;
+                totalExecutadoGeral += dados.totalExecutado;
+                totalRemarcacaoGeral += dados.remarcacao;
+                totalCancelamentoGeral += dados.cancelamento;
+
+                relatorio += `-----------------------------------------------\n\n`;
                 relatorio += `Equipe Técnica: ${nome}\n\n`;
 
                 relatorio += `    • Planejamento: ${dados.planejamento}\n`;
@@ -1086,12 +1098,10 @@
                 relatorio += `\n`;
                 relatorio += `    • Total de Serviços Executados: ${dados.totalExecutado.toString().replace(".", ",")}\n\n`;
 
-                // ===== JUSTIFICATIVA NUMERADA =====
+                // ===== JUSTIFICATIVAS =====
                 relatorio += `Justificativa:\n`;
 
                 let contadorJustificativas = 1;
-
-                // Busca todas as justificativas manuais deste técnico
                 const justificativasContainer = blocos[i].querySelector(".justificativas-container");
                 const justificativasManuais = [];
 
@@ -1107,11 +1117,9 @@
                     });
                 }
 
-                // Busca as retiradas de tempo para este técnico na mesma data
                 let retiradas = buscarRetiradasPorTecnicoData(nome, data);
 
                 if (retiradas && retiradas.length > 0) {
-                    // Adiciona cada motivo numerado
                     retiradas.forEach(retirada => {
                         relatorio += `${contadorJustificativas}º ${retirada.motivo}\n`;
                         contadorJustificativas++;
@@ -1119,9 +1127,7 @@
                 }
 
                 relatorio += `\n`;
-                relatorio += `-----------------------------------------------\n\n`;
 
-                // Salvar dados da equipe
                 dadosParaSalvar.equipes.push({
                     nome: nome,
                     tabela: tabelas[i].value,
@@ -1129,13 +1135,22 @@
                 });
             }
 
-            // Salvar relatório no localStorage
+            // 🔥 BLOCO DE TOTAIS GERAIS
+            let blocoTotais = "";
+            blocoTotais += `Total de Serviços Planejados: ${totalPlanejamentoGeral}\n`;
+            blocoTotais += `Total de Serviços Executados: ${totalExecutadoGeral.toString().replace(".", ",")}\n`;
+            blocoTotais += `Total de Serviços Remarcados: ${totalRemarcacaoGeral}\n`;
+            blocoTotais += `Total de Serviços Cancelados: ${totalCancelamentoGeral}\n\n`;
+
+            // Inserir após Número de Equipes
+            relatorio = relatorio.replace(
+                `Número de Equipes: ${totalEquipes}\n\n`,
+                `Número de Equipes: ${totalEquipes}\n\n${blocoTotais}`
+            );
+
             salvarRelatorio(data, dadosParaSalvar);
 
-            // Mostrar o botão de copiar
             document.querySelector('.btn-copy').style.display = 'inline-flex';
-
-            // Atualiza o elemento com o relatório
             document.getElementById("resultado-ativacao").innerHTML = relatorio;
         }
 
