@@ -751,12 +751,14 @@
         }
 
         function processarTabela(texto) {
+
             if (!texto || texto.trim() === "") return null;
 
             const linhas = texto.trim().split("\n");
             if (linhas.length <= 1) return null;
 
-            const cabecalho = linhas[0].split("\t");
+            const dividirColunas = (linha) => linha.trim().split(/\t|\s{2,}/);
+            const cabecalho = dividirColunas(linhas[0]);
 
             const indexServico = cabecalho.findIndex(c =>
                 c.toLowerCase().includes("serviço") ||
@@ -764,10 +766,62 @@
             );
 
             const indexStatus = cabecalho.findIndex(c =>
-                c.toLowerCase().includes("feito")
+                c.toLowerCase().includes("feito") ||
+                c.toLowerCase().includes("status")
             );
 
-            if (indexServico === -1 || indexStatus === -1) return null;
+            if (indexServico === -1 || indexStatus === -1) {
+                console.log("Cabeçalho não identificado:", cabecalho);
+                return null;
+            }
+
+            function normalizar(texto) {
+                return texto
+                    .normalize("NFD")
+                    .replace(/[\u0300-\u036f]/g, "")
+                    .replace(/[–—]/g, "-")
+                    .replace(/\s+/g, " ")
+                    .toUpperCase()
+                    .trim();
+            }
+
+            function calcularValorServico(servico) {
+
+                const s = servico.toUpperCase().replace(/\s+/g, "");
+
+                // 🔥 CASO ESPECIAL: REC + DES.PORTA = 0.5
+                if (s.includes("REC+") && s.includes("DES.PORTA")) {
+                    return 0.5;
+                }
+
+                // 🔥 0.25 → desativação
+                if (
+                    servico.includes("DES.") ||
+                    servico.includes("DESAT") ||
+                    servico.includes("RECOLHER")
+                ) {
+                    return 0.25;
+                }
+
+                // 🔥 1.5 → conjugado
+                if (servico.includes("+")) {
+                    return 1.5;
+                }
+
+                // 🔥 0.5 → TV / IPTV / SVA / BOX / Recorrência
+                if (
+                    servico.includes("IPTV") ||
+                    servico.includes("TV") ||
+                    servico.includes("SVA") ||
+                    servico.includes("BOX") ||
+                    servico.includes("RECORR")
+                ) {
+                    return 0.5;
+                }
+
+                // 🔥 padrão
+                return 1;
+            }
 
             let planejamento = 0;
             let execucao = 0;
@@ -780,117 +834,23 @@
 
             let mapa = {};
 
-            const valoresServicos = {
-
-                "ALT. PPPOE": 1,
-                "ALT. SENHA": 1,
-                "APOIO A EQUIPE": 1,
-                "AT. IPTV": 0.5,
-                "AT. WIFI PLUS": 1,
-                "ATIVAÇÃO": 1,
-                "ATIVAÇÃO - FIBRA + WI-FI PLUS": 1.5,
-                "ATIVAÇÃO PRP": 1,
-                "AT. WIFI PRO": 1,
-                "CABO BAIXO": 1,
-                "DES. PORTA": 0.25,
-                "CONF. ROTEAD. C/ VISITA": 1,
-                "EMP EQUI. ESPEC.": 1,
-                "EMP S/ CONEXÃO": 1,
-                "EMP. LENTIDÃO": 1,
-                "EMP. TROCA EQUIP.": 1,
-                "ESCALONAMENTO": 1,
-                "EMP. REDE INTERNA": 1,
-                "EQUIP. ESPECIFICO": 1,
-                "LENTIDÃO": 1,
-                "M.E": 1,
-                "MAPEAR CTO": 1,
-                "MLP": 1,
-                "MMA": 1,
-                "PADRONIZAÇÃO": 1,
-                "PÓS SERVIÇO": 1,
-                "SUP. TELEFONIA": 1,
-                "REATIVAÇÃO": 1,
-                "RECOLHER EQUIP.": 0.25,
-                "RECOLOCAR EQUIP.": 1,
-                "REDE INTERNA": 1,
-                "REDE LIVE": 1,
-                "REMANEJAMENTO": 1,
-                "RETENÇÃO": 1,
-                "SEM CONEXÃO": 1,
-                "SUP. WIFI PLUS": 1,
-                "SUPORTE ATIVO": 1,
-                "TESTE VELOCIDADE": 1,
-                "TROCA EQUIP.": 1,
-                "VISTORIA WIFIPRO": 1,
-                "RECORRÊNCIA": 1,
-                "MAN. WIFI PRO": 1,
-                "APP ESPECÍFICO": 1,
-                "ATENUAÇÃO": 1,
-                "TEL. COM PORTABILIDADE": 1,
-                "TEL. SEM PORTABILIDADE": 1,
-                "ATV - FIBRA + TELEFONIA": 1.5,
-                "ATIVAÇÃO FIBRA + VIRTEX TV": 1.5,
-                "SUPORTE VIRTEX TV": 1,
-                "VIRTEX TV SEM BOX": 0.5,
-                "VIRTEX TV COM BOX": 0.5,
-                "ORGANIZAÇÃO DE CABO": 1,
-                "TROCA DE POSTE": 1,
-                "ADIANTAMENTO DE SERV.": 1,
-                "MIGRAÇÃO": 1,
-                "AT. TECNOLOGICA": 1,
-                "ME+WIFI PLUS": 1.5,
-                "MUD. PASSAGEM DROP": 1,
-                "VISTORIA PRÉ-ATIVAÇÃO": 1,
-                "ATV SVA": 0.5,
-                "MANUTENÇÃO POP": 1,
-                "DESAT. BOX": 0.25,
-                "DES. WIFI PLUS": 0.25,
-                "QUALIDADE COMP.": 1,
-                "AT. WIFI PLUS EMP": 1,
-                "SUP.WIFI PLUS EMP": 1,
-                "ATV- FIBRA+WIFI PRO": 1.5,
-                "ATV WIFI PLUS EMP": 1,
-                "REC+DES. PORTA": 0.5,
-                "PROBLEMA TÉCNICO": 1,
-                "ME + WIFI PLUS": 1.5,
-                "SEM CONEXÃO ACOMP. NOC": 1,
-                "LENTIDÃO ACOMP. NOC": 1,
-                "DES. DE TELEFONIA": 0.25,
-                "ATIVAÇÃO - RÁDIO": 1
-            };
-
             for (let i = 1; i < linhas.length; i++) {
 
-                const linhaCompleta = linhas[i].toLowerCase().trim();
+                if (!linhas[i].trim()) continue;
 
-                if (
-                    linhaCompleta.includes("pausa") ||
-                    linhaCompleta.includes("retirada de tempo") ||
-                    linhaCompleta.includes("chuva") ||
-                    linhaCompleta.includes("deslocamento") ||
-                    linhaCompleta.includes("almoço") ||
-                    linhaCompleta.includes("almoco") ||
-                    linhaCompleta.includes("dss") ||
-                    linhaCompleta.includes("nenhum") ||
-                    linhaCompleta.includes("auditoria") ||
-                    linhaCompleta.includes("colher assinatura") ||
-                    linhaCompleta.includes("banco de horas")
-                ) continue;
-
-                const colunas = linhas[i].split("\t");
+                const colunas = dividirColunas(linhas[i]);
 
                 const servicoOriginal = colunas[indexServico]?.trim();
                 const statusOriginal = colunas[indexStatus]?.trim();
 
                 if (!servicoOriginal || !statusOriginal) continue;
 
-                const servicoUpper = servicoOriginal.toUpperCase();
-                const servicoLower = servicoOriginal.toLowerCase();
-                const status = statusOriginal.toUpperCase();
+                const servico = normalizar(servicoOriginal);
+                const status = normalizar(statusOriginal);
 
                 planejamento++;
 
-                if (status === "CANCELADO") {
+                if (status.includes("CANCEL")) {
                     cancelamento++;
                     continue;
                 }
@@ -900,31 +860,23 @@
                     continue;
                 }
 
-                if (status === "OK" || status === "FEITO") {
+                if (status.includes("OK") || status.includes("FEITO")) {
 
                     execucao++;
 
-                    let valor = 1;
-
-                    for (let tipo in valoresServicos) {
-                        if (servicoUpper.includes(tipo)) {
-                            valor = valoresServicos[tipo];
-                            break;
-                        }
-                    }
-
+                    const valor = calcularValorServico(servico);
                     totalExecutado += valor;
 
                     if (!mapa[servicoOriginal]) mapa[servicoOriginal] = 0;
                     mapa[servicoOriginal] += 1;
 
-                    if (servicoLower.includes("tratativa cs"))
+                    if (servico.includes("TRATATIVA CS"))
                         tratativasCS++;
 
-                    if (servicoLower.includes("infraestrutura"))
+                    if (servico.includes("INFRAESTRUTURA"))
                         infraestrutura++;
 
-                    if (servicoLower.includes("nivel 2"))
+                    if (servico.includes("NIVEL 2"))
                         resolucaoN2++;
                 }
             }
