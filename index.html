@@ -788,11 +788,16 @@
             function calcularValorServico(servico) {
 
                 const s = servico.toUpperCase().replace(/\s+/g, "");
+                const d = servico.toUpperCase().replace(/\s+/g, "");
 
+                if (d.includes("RECORRÊNCIA")) {
+                    return 1;
+                }
                 // 🔥 CASO ESPECIAL: REC + DES.PORTA = 0.5
                 if (s.includes("REC+") && s.includes("DES.PORTA")) {
                     return 0.5;
                 }
+
 
                 // 🔥 0.25 → desativação
                 if (
@@ -813,8 +818,7 @@
                     servico.includes("IPTV") ||
                     servico.includes("TV") ||
                     servico.includes("SVA") ||
-                    servico.includes("BOX") ||
-                    servico.includes("RECORR")
+                    servico.includes("BOX")
                 ) {
                     return 0.5;
                 }
@@ -848,7 +852,8 @@
                 const servico = normalizar(servicoOriginal);
                 const status = normalizar(statusOriginal);
 
-                planejamento++;
+                const valorPlanejado = calcularValorServico(servico);
+                planejamento += valorPlanejado;
 
                 if (status.includes("CANCEL")) {
                     cancelamento++;
