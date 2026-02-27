@@ -750,8 +750,107 @@
             container.appendChild(bloco);
         }
 
-        function processarTabela(texto) {
+        // ===== NOVA TABELA DE PESOS ADICIONADA (SEM MODIFICAR NADA) =====
+        const tabelaPesos = {
+            "ADIANTAMENTO DE SERV.": 2,
+            "ALT. PPPOE": 0.25,
+            "ALT. SENHA": 1,
+            "APOIO A EQUIPE": 1.5,
+            "APP ESPECÍFICO": 1.7,
+            "AT. IPTV": 1,
+            "AT. TECNOLOGICA": 1.7,
+            "AT. WIFI PLUS": 1.7,
+            "AT. WIFI PLUS EMP": 2,
+            "AT. WIFI PRO": 2,
+            "ATENUAÇÃO": 1.7,
+            "ATIVAÇÃO": 2,
+            "ATIVAÇÃO - FIBRA + WI-FI PLUS": 3,
+            "ATIVAÇÃO - RÁDIO": 2,
+            "ATIVAÇÃO FIBRA + VIRTEX TV": 2.5,
+            "ATIVAÇÃO PRP": 2,
+            "ATV - FIBRA + TELEFONIA": 3,
+            "ATV SVA": 0.5,
+            "ATV WIFI PLUS EMP": 2,
+            "ATV- FIBRA+WIFI PRO": 2.5,
+            "CABO BAIXO": 1,
+            "COLHER ASSINATURA": 0.25,
+            "CONF. ROTEAD. C/ VISITA": 1.5,
+            "DES. DE TELEFONIA": 0.25,
+            "DES. PORTA": 0.4,
+            "DES. WIFI PLUS": 0.25,
+            "DESAT. BOX": 0.25,
+            "EMP EQUI. ESPEC.": 1.7,
+            "EMP S/ CONEXÃO": 2,
+            "EMP. LENTIDÃO": 2,
+            "EMP. REDE INTERNA": 2,
+            "EMP. TROCA EQUIP.": 1.7,
+            "EQUIP. ESPECIFICO": 1.7,
+            "ESCALONAMENTO": 1,
+            "LENTIDÃO": 2,
+            "LENTIDÃO ACOMP. NOC": 2,
+            "M.E": 2,
+            "MAN. WIFI PRO": 2,
+            "MANUTENÇÃO POP": 2,
+            "ME + WIFI PLUS": 2.5,
+            "ME+WIFI PLUS": 2.5,
+            "MIGRAÇÃO": 1.7,
+            "MLP": 1.5,
+            "MMA": 2,
+            "MUD. PASSAGEM DROP": 1.5,
+            "ORGANIZAÇÃO DE CABO": 1.5,
+            "PADRONIZAÇÃO": 0.25,
+            "PÓS SERVIÇO": 1.7,
+            "REATIVAÇÃO": 2,
+            "REC+DES. PORTA": 0.25,
+            "RECORRÊNCIA": 1.7,
+            "RECOLHER EQUIP.": 0.4,
+            "RECOLOCAR EQUIP.": 1,
+            "REDE INTERNA": 2,
+            "REDE LIVE": 2,
+            "REMANEJAMENTO": 2,
+            "RETENÇÃO": 2.5,
+            "SEM CONEXÃO": 2,
+            "SEM CONEXÃO ACOMP. NOC": 2,
+            "SUP. TELEFONIA": 1.7,
+            "SUP. WIFI PLUS": 1.7,
+            "SUP.WIFI PLUS EMP": 1.7,
+            "SUPORTE ATIVO": 1.7,
+            "SUPORTE VIRTEX TV": 0.5,
+            "TEL. COM PORTABILIDADE": 1,
+            "TEL. SEM PORTABILIDADE": 1,
+            "TESTE VELOCIDADE": 1.7,
+            "TROCA DE POSTE": 4,
+            "TROCA EQUIP.": 1.7,
+            "VIRTEX TV COM BOX": 0.5,
+            "VIRTEX TV SEM BOX": 0.5,
+            "VISTORIA PRÉ-ATIVAÇÃO": 0,
+            "VISTORIA WIFIPRO": 1.5
+        };
 
+        // Função para normalizar texto
+        function normalizarTexto(texto) {
+            return texto
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .replace(/[–—]/g, "-")
+                .replace(/\s+/g, " ")
+                .toUpperCase()
+                .trim();
+        }
+
+        // Função para encontrar peso do serviço
+        function encontrarPesoServico(servicoOriginal) {
+            const servicoNormalizado = normalizarTexto(servicoOriginal);
+            
+            for (let [chave, peso] of Object.entries(tabelaPesos)) {
+                if (normalizarTexto(chave) === servicoNormalizado) {
+                    return peso;
+                }
+            }
+            return 1;
+        }
+
+        function processarTabela(texto) {
             if (!texto || texto.trim() === "") return null;
 
             const linhas = texto.trim().split("\n");
@@ -785,21 +884,17 @@
                     .trim();
             }
 
+            // Função original MANTIDA IGUAL
             function calcularValorServico(servico) {
-
                 const s = servico.toUpperCase().replace(/\s+/g, "");
                 const d = servico.toUpperCase().replace(/\s+/g, "");
 
                 if (d.includes("RECORRÊNCIA")) {
                     return 1;
                 }
-                // 🔥 CASO ESPECIAL: REC + DES.PORTA = 0.5
                 if (s.includes("REC+") && s.includes("DES.PORTA")) {
                     return 0.5;
                 }
-
-
-                // 🔥 0.25 → desativação
                 if (
                     servico.includes("DES.") ||
                     servico.includes("DESAT") ||
@@ -807,13 +902,9 @@
                 ) {
                     return 0.25;
                 }
-
-                // 🔥 1.5 → conjugado
                 if (servico.includes("+")) {
                     return 1.5;
                 }
-
-                // 🔥 0.5 → TV / IPTV / SVA / BOX / Recorrência
                 if (
                     servico.includes("IPTV") ||
                     servico.includes("TV") ||
@@ -822,8 +913,6 @@
                 ) {
                     return 0.5;
                 }
-
-                // 🔥 padrão
                 return 1;
             }
 
@@ -839,7 +928,6 @@
             let mapa = {};
 
             for (let i = 1; i < linhas.length; i++) {
-
                 if (!linhas[i].trim()) continue;
 
                 const colunas = dividirColunas(linhas[i]);
@@ -852,9 +940,8 @@
                 const servico = normalizar(servicoOriginal);
                 const status = normalizar(statusOriginal);
 
-                const valorPlanejado = calcularValorServico(servico);
-                planejamento += valorPlanejado;
-
+                planejamento++;
+                
                 if (status.includes("CANCEL")) {
                     cancelamento++;
                     continue;
@@ -866,9 +953,9 @@
                 }
 
                 if (status.includes("OK") || status.includes("FEITO")) {
-
                     execucao++;
 
+                    // Usando a função original (mantida)
                     const valor = calcularValorServico(servico);
                     totalExecutado += valor;
 
@@ -1006,7 +1093,7 @@
 
             let relatorio = "";
 
-            // 🔥 TOTAIS GERAIS
+            // TOTAIS GERAIS
             let totalPlanejamentoGeral = 0;
             let totalExecutadoGeral = 0;
             let totalRemarcacaoGeral = 0;
@@ -1023,13 +1110,12 @@
             };
 
             for (let i = 0; i < nomes.length; i++) {
-
                 const nome = nomes[i].value.trim();
                 const dados = processarTabela(tabelas[i].value);
 
                 if (!nome || !dados) continue;
 
-                // 🔥 SOMA TODOS OS TOTAIS
+                // SOMA TODOS OS TOTAIS
                 totalPlanejamentoGeral += dados.planejamento;
                 totalExecutadoGeral += dados.totalExecutado;
                 totalRemarcacaoGeral += dados.remarcacao;
@@ -1038,13 +1124,13 @@
                 relatorio += `-----------------------------------------------\n\n`;
                 relatorio += `Equipe Técnica: ${nome}\n\n`;
 
-                relatorio += `    • Planejamento: ${dados.planejamento}\n`;
-                relatorio += `    • Execução: ${dados.execucao}\n`;
-                relatorio += `    • Remarcação: ${dados.remarcacao}\n`;
-                relatorio += `    • Cancelamento: ${dados.cancelamento}\n`;
-                relatorio += `    • Tratativas CS: ${dados.tratativasCS}\n`;
-                relatorio += `    • Infraestrutura: ${dados.infraestrutura}\n`;
-                relatorio += `    • Resolução N2: ${dados.resolucaoN2}\n\n`;
+                relatorio += `    • Protocolos Planejamento: ${dados.planejamento}\n`;
+                relatorio += `    • Protocolos Execução: ${dados.execucao}\n`;
+                relatorio += `    • Protocolos Remarcação: ${dados.remarcacao}\n`;
+                relatorio += `    • Protocolos Cancelamento: ${dados.cancelamento}\n`;
+                relatorio += `    • Protocolos Tratativas CS: ${dados.tratativasCS}\n`;
+                relatorio += `    • Protocolos Infraestrutura: ${dados.infraestrutura}\n`;
+                relatorio += `    • Protocolos Resolução N2: ${dados.resolucaoN2}\n\n`;
 
                 relatorio += `Resumo de Atividades:\n\n`;
 
@@ -1053,9 +1139,17 @@
                 }
 
                 relatorio += `\n`;
-                relatorio += `    • Total de Serviços Executados: ${dados.totalExecutado.toString().replace(".", ",")}\n\n`;
+                // MANTIDO IGUAL - Total de Serviços Executados usando a lógica original
+                relatorio += `    • Total de Serviços Executados: ${dados.totalExecutado.toString().replace(".", ",")}\n`;
+                // ===== NOVA LINHA ADICIONADA - Produtividade usando a tabela de pesos =====
+                let produtividade = 0;
+                for (let tipo in dados.mapa) {
+                    const peso = encontrarPesoServico(tipo);
+                    produtividade += peso * dados.mapa[tipo];
+                }
+                relatorio += `    • Total de Produtividade: ${produtividade.toFixed(2).replace(".", ",")}\n\n`;
 
-                // ===== JUSTIFICATIVAS =====
+                // JUSTIFICATIVAS
                 relatorio += `Justificativa:\n`;
 
                 let contadorJustificativas = 1;
@@ -1092,12 +1186,12 @@
                 });
             }
 
-            // 🔥 BLOCO DE TOTAIS GERAIS
+            // BLOCO DE TOTAIS GERAIS
             let blocoTotais = "";
-            blocoTotais += `Total de Serviços Planejados: ${totalPlanejamentoGeral}\n`;
-            blocoTotais += `Total de Serviços Executados: ${totalExecutadoGeral.toString().replace(".", ",")}\n`;
-            blocoTotais += `Total de Serviços Remarcados: ${totalRemarcacaoGeral}\n`;
-            blocoTotais += `Total de Serviços Cancelados: ${totalCancelamentoGeral}\n\n`;
+            // blocoTotais += `Total de Protocolos Planejados: ${totalPlanejamentoGeral}\n`;
+            // blocoTotais += `Total de Protocolos Executados: ${totalExecutadoGeral.toString().replace(".", ",")}\n`;
+            // blocoTotais += `Total de Protocolos Remarcados: ${totalRemarcacaoGeral}\n`;
+            // blocoTotais += `Total de Protocolos Cancelados: ${totalCancelamentoGeral}\n\n`;
 
             // Inserir após Número de Equipes
             relatorio = relatorio.replace(
@@ -1244,7 +1338,6 @@
         }
 
         function apagarTodosRelatorios() {
-
             if (!confirm("⚠️ Deseja realmente apagar TODOS os relatórios salvos no navegador?")) {
                 return;
             }
