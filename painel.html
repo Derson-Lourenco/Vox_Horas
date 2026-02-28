@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THERON · Painel Técnico</title>
+    <link rel="icon" type="image/png" href="/img/image-removebg-preview (1).png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <img src="/img/image-removebg-preview.png" alt="VTX" class="logo-img">
+                </div>
+            </div>
+
+            <div class="sidebar-user">
+                <div class="user-avatar">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div class="user-info">
+                    <span class="user-name" id="user-name">Carregando...</span>
+                    <span class="user-role">Técnico</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <ul>
+                    <li class="nav-item active" onclick="mudarAba('ativacao')">
+                        <i class="fas fa-clipboard-list"></i>
+                        <span>Relatório</span>
+                    </li>
+                    <li class="nav-item" onclick="mudarAba('retirada')">
+                        <i class="fas fa-hourglass-half"></i>
+                        <span>Retirada de Tempo</span>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button class="logout-btn" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Sair</span>
+                </button>
+                <div class="sidebar-version">
+                    v2.0.0
+                </div>
+            </div>
+        </aside>
+
+        <!-- Conteúdo Principal -->
+        <main class="main-content">
+            <!-- Header do conteúdo -->
+            <div class="content-header">
+                <h1 id="page-title">Relatório</h1>
+                <div class="header-actions">
+                    <div class="date-badge">
+                        <i class="far fa-calendar-alt"></i>
+                        <span id="current-date"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aba 1: Relatório de Ativação -->
+            <div id="aba-ativacao" class="aba-conteudo ativo">
+                <div class="card">
+                    <!-- <h4>
+                        <i class="fas fa-clipboard-list"></i>
+                        Informações do Relatório
+                    </h4> -->
+
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label><i class="far fa-calendar-alt inline-icon"></i>Data</label>
+                            <input type="date" id="data-ativacao">
+                        </div>
+
+                        <div class="col-md-3">
+                            <label><i class="fas fa-map-marker-alt inline-icon"></i>Cidade - Estado</label>
+                            <input type="text" id="cidade" placeholder="Picos - PI">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label><i class="fas fa-user-cog inline-icon"></i>Nome do Técnico Interno</label>
+                            <input type="text" id="responsavel" placeholder="Responsável">
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div id="equipes"></div>
+
+                    <div class="btn-group">
+                        <button onclick="adicionarEquipe()" class="btn-success">
+                            <i class="fas fa-plus-circle"></i>
+                            Adicionar Técnico de Campo
+                        </button>
+                        <button onclick="carregarRelatorio()" class="btn-load">
+                            <i class="fas fa-folder-open"></i>
+                            Carregar Relatório
+                        </button>
+                        <button onclick="emitirRelatorio()" class="btn-primary">
+                            <i class="fas fa-check-double"></i>
+                            Finalizar e Emitir Relatório
+                        </button>
+                        <button onclick="apagarRelatorio()" class="btn-danger">
+                            <i class="fas fa-trash-alt"></i>
+                            Apagar Relatório
+                        </button>
+                        <button onclick="copiarRelatorio()" class="btn-copy" style="display: none;">
+                            <i class="fas fa-copy"></i>
+                            Copiar Relatório
+                        </button>
+                    </div>
+                </div>
+
+                <div id="resultado-ativacao" class="relatorio-final"></div>
+            </div>
+
+            <!-- Aba 2: Retirada de Tempo -->
+            <div id="aba-retirada" class="aba-conteudo">
+                <div class="card">
+                    <!-- <h4>
+                        <i class="fas fa-hourglass-half"></i>
+                        Retirada de Tempo
+                    </h4> -->
+
+                    <div class="grid-3">
+                        <div>
+                            <label><i class="far fa-calendar-alt inline-icon"></i>Data</label>
+                            <input type="date" id="data-retirada">
+                        </div>
+                        <div>
+                            <label><i class="fas fa-user-cog inline-icon"></i>Técnico</label>
+                            <input type="text" id="tecnico" placeholder="Digite o nome do técnico">
+                        </div>
+                        <div>
+                            <label><i class="fas fa-clock inline-icon"></i>Carga Horária</label>
+                            <select id="jornada">
+                                <option value="">Selecione</option>
+                                <option value="Comercial">Comercial</option>
+                                <option value="12/36">12/36</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="total-box" id="tempoTotal">
+                        <i class="fas fa-clock"></i>
+                        <span>Tempo a Retirar: <strong>0 minutos</strong></span>
+                    </div>
+
+                    <div class="grid-2">
+                        <div>
+                            <label><i class="fas fa-play-circle inline-icon"></i>Hora Inicial</label>
+                            <input type="time" id="inicio">
+                        </div>
+                        <div>
+                            <label><i class="fas fa-stop-circle inline-icon"></i>Hora Final</label>
+                            <input type="time" id="fim">
+                        </div>
+                    </div>
+
+                    <label><i class="fas fa-pen inline-icon"></i>Motivo</label>
+                    <textarea id="motivo" placeholder="Descreva o motivo da retirada..." rows="3"></textarea>
+
+                    <div class="btn-group">
+                        <button onclick="adicionarRetirada()">
+                            <i class="fas fa-plus-circle"></i>
+                            Adicionar período
+                        </button>
+                        <button onclick="finalizarRetirada()">
+                            <i class="fas fa-check-double"></i>
+                            Finalizar dia
+                        </button>
+                        <button onclick="limparDataRetirada()" class="btn-danger">
+                            <i class="fas fa-trash-alt"></i>
+                            Limpar esta data
+                        </button>
+                    </div>
+
+                    <hr>
+
+                    <div id="resultado-retirada"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Botão de menu para mobile -->
+    <div class="menu-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            document.querySelector('.sidebar').classList.toggle('active');
+        }
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>

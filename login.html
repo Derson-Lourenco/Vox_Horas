@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THERON · Login</title>
+    <link rel="icon" type="image/png" href="/img/image-removebg-preview (1).png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <!-- Lado esquerdo - Logo e boas-vindas -->
+            <div class="login-left">
+                <div class="logo-area">
+                    <img src="/img/image-removebg-preview.png" alt="THERON" class="login-logo">
+                </div>
+
+                <div class="welcome-content">
+                    <h2 class="welcome-title">Plataforma THERON</h2>
+                    <p class="welcome-subtitle">Gerencie relatórios de ativação e retirada de tempo da sua equipe</p>
+
+                    <div class="features">
+                        <div class="feature-item">
+                            <i class="fas fa-file-alt"></i>
+                            <span>Relatórios de ativação</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-hourglass-half"></i>
+                            <span>Retirada de tempo</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-users"></i>
+                            <span>Gestão de equipes</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lado direito - Formulário de login -->
+            <div class="login-right">
+                <div class="login-form-container">
+                    <h3 class="form-title">Entrar no sistema</h3>
+
+                    <div id="error-message" class="error-message" style="display: none;">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span>Email ou senha incorretos</span>
+                    </div>
+
+                    <form id="login-form" onsubmit="return false;">
+                        <div class="input-group">
+                            <label for="email">
+                                <i class="fas fa-envelope"></i>
+                                Email
+                            </label>
+                            <input type="email" id="email" placeholder="seu@email.com" autocomplete="email" required>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="password">
+                                <i class="fas fa-lock"></i>
+                                Senha
+                            </label>
+                            <div class="password-input-wrapper">
+                                <input type="password" id="password" placeholder="••••••••"
+                                    autocomplete="current-password" required>
+                                <button type="button" class="password-toggle"
+                                    onclick="LoginManager.togglePasswordField()" tabindex="-1">
+                                    <i class="fas fa-eye" id="toggle-icon"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="login-button" onclick="handleLogin()">
+                            <span>Acessar sistema</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </form>
+
+                    <div class="login-footer">
+                        <p>Sistema de Gestão Técnica THERON</p>
+                        <p class="version">v2.0.0</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Créditos -->
+        <div class="credits">
+            <p>© 2025 THERON. Todos os direitos reservados.</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
