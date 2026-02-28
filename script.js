@@ -482,7 +482,7 @@ const LoginManager = {
 
     logout() {
         localStorage.removeItem("vtx_session");
-        window.location.href = "login.html";
+        window.location.href = "index.html";
     },
 
     initLoginPage() {
@@ -508,6 +508,7 @@ const LoginManager = {
         }
     },
 };
+
 
 // ========== INTERFACE DE USUÁRIO ==========
 const UI = {
