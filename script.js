@@ -195,20 +195,20 @@ const Utils = {
 };
 
 // ========== CONVERSOR DE TEMPO ==========
+// ========== CONVERSOR DE TEMPO ==========
 const ConversorTempo = {
     obterTempoConvertido(minutos, jornada) {
         if (jornada !== CONFIG.JORNADAS.DOZE_TRINTA_SEIS) {
             return minutos;
         }
 
-        const tempoFormatado = Utils.minutosParaHoraMinutos(minutos);
+        // Conversão proporcional automática (12h vira 8h)
+        const fatorConversao = 8 / 12;
 
-        if (TABELA_CONVERSAO_12X36.hasOwnProperty(tempoFormatado)) {
-            const tempoConvertidoFormatado = TABELA_CONVERSAO_12X36[tempoFormatado];
-            return Utils.horaMinutosParaMinutos(tempoConvertidoFormatado);
-        }
+        // Arredonda para múltiplos de 10 minutos (igual sua tabela antiga)
+        const minutosConvertidos = Math.round((minutos * fatorConversao) / 10) * 10;
 
-        return minutos;
+        return minutosConvertidos;
     },
 };
 
