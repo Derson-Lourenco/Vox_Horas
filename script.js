@@ -509,7 +509,6 @@ const LoginManager = {
     },
 };
 
-
 // ========== INTERFACE DE USUÁRIO ==========
 const UI = {
     tecnicosEditando: {},
@@ -762,7 +761,20 @@ const UI = {
                 `;
             } else {
                 lista.forEach((r) => {
-                    bloco.innerHTML += `Tempo: ${Utils.formatarTempo(r.minutos, r.jornada)}.<br>`;
+                    // --- INÍCIO DA MODIFICAÇÃO ---
+                    // Verifica se a jornada é 12/36
+                    if (r.jornada === CONFIG.JORNADAS.DOZE_TRINTA_SEIS) {
+                        // Formata o tempo original
+                        const tempoOriginalFormatado = Utils.minutosParaHoraMinutos(r.minutos);
+                        // Usa a função existente para formatar o tempo convertido
+                        const tempoConvertidoFormatado = Utils.formatarTempo(r.minutos, r.jornada);
+                        // Exibe no formato solicitado
+                        bloco.innerHTML += `Tempo: ${tempoConvertidoFormatado} (referente a ${tempoOriginalFormatado}).<br>`;
+                    } else {
+                        // Para outras jornadas, mantém o formato original
+                        bloco.innerHTML += `Tempo: ${Utils.formatarTempo(r.minutos, r.jornada)}.<br>`;
+                    }
+                    // --- FIM DA MODIFICAÇÃO ---
                     bloco.innerHTML += `Motivo: ${r.motivo}<br><br>`;
                 });
 
