@@ -15,6 +15,7 @@ const ALLOWED_EMAILS = [
     "lucas.vtx@gmail.com",
     "jailton.vtx@gmail.com",
     "rafael.vtx@gmail.com",
+    "maria.vtx@gmail.com",
 ];
 
 const PASSWORD = "vtx2026";
