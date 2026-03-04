@@ -130,12 +130,12 @@ const TABELA_PESOS = {
 const Utils = {
     normalizarTexto(texto) {
         return texto
-            .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "")
-            .replace(/[–—]/g, "-")
-            .replace(/\s+/g, " ")
-            .toUpperCase()
-            .trim();
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[–—]/g, "-")
+        .replace(/\s+/g, " ")
+        .toUpperCase()
+        .trim();
     },
 
     formatarDataISO(dataISO) {
@@ -294,6 +294,7 @@ const DataManager = {
 };
 
 // ========== PROCESSADOR DE TABELA ==========
+// ========== PROCESSADOR DE TABELA ==========
 const ProcessadorTabela = {
     encontrarPesoServico(servicoOriginal) {
         const servicoNormalizado = Utils.normalizarTexto(servicoOriginal);
@@ -306,14 +307,60 @@ const ProcessadorTabela = {
         return 1;
     },
 
+    // NOVA FUNÇÃO PARA DIVIDIR COLUNAS DE FORMA ROBUSTA
+    dividirColunas(linha) {
+        // Primeiro, tenta dividir por tabulação
+        if (linha.includes("\t")) {
+            return linha.split("\t").map((col) => col.trim());
+        }
+
+        // Se não tem tabulação, usa uma abordagem mais inteligente
+        // Remove aspas extras e espaços no início/fim
+        linha = linha.trim();
+
+        // Expressão regular melhorada que considera campos com espaços
+        // Mas não divide dentro de campos que podem conter espaços
+        const colunas = [];
+        let current = "";
+        let inQuotes = false;
+
+        for (let i = 0; i < linha.length; i++) {
+            const char = linha[i];
+
+            // Se encontrar aspas, alterna o estado
+            if (char === '"' || char === "'") {
+                inQuotes = !inQuotes;
+                continue;
+            }
+
+            // Se encontrar um espaço ou tab e não está dentro de aspas
+            if ((char === " " || char === "\t") && !inQuotes) {
+                if (current.trim()) {
+                    colunas.push(current.trim());
+                    current = "";
+                }
+                continue;
+            }
+
+            current += char;
+        }
+
+        // Adiciona a última coluna
+        if (current.trim()) {
+            colunas.push(current.trim());
+        }
+
+        return colunas;
+    },
+
     processar(texto) {
         if (!texto || texto.trim() === "") return null;
 
         const linhas = texto.trim().split("\n");
         if (linhas.length <= 1) return null;
 
-        const dividirColunas = (linha) => linha.trim().split(/\t|\s{2,}/);
-        const cabecalho = dividirColunas(linhas[0]);
+        // Usar a nova função de divisão
+        const cabecalho = this.dividirColunas(linhas[0]);
 
         const indexServico = cabecalho.findIndex(
             (c) => c.toLowerCase().includes("serviço") || c.toLowerCase().includes("servico")
@@ -330,12 +377,12 @@ const ProcessadorTabela = {
 
         const normalizar = (texto) => {
             return texto
-                .normalize("NFD")
-                .replace(/[\u0300-\u036f]/g, "")
-                .replace(/[–—]/g, "-")
-                .replace(/\s+/g, " ")
-                .toUpperCase()
-                .trim();
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[–—]/g, "-")
+            .replace(/\s+/g, " ")
+            .toUpperCase()
+            .trim();
         };
 
         const calcularValorServico = (servico) => {
@@ -344,20 +391,40 @@ const ProcessadorTabela = {
             if (s.includes("REC+") && s.includes("DES.PORTA")) return 0.5;
             if (servico.includes("DES.") || servico.includes("DESAT") || servico.includes("RECOLHER")) return 0.25;
             if (servico.includes("+")) return 1.5;
-            if (servico.includes("IPTV") || servico.includes("TV") || servico.includes("SVA") || servico.includes("BOX")) return 0.5;
+            if (
+                servico.includes("IPTV") ||
+                servico.includes("TV") ||
+                servico.includes("SVA") ||
+                servico.includes("BOX")
+            )
+                return 0.5;
             return 1;
         };
 
-        let planejamento = 0, execucao = 0, totalExecutado = 0;
-        let remarcacao = 0, cancelamento = 0, tratativasCS = 0, infraestrutura = 0, resolucaoN2 = 0;
+        let planejamento = 0,
+            execucao = 0,
+            totalExecutado = 0;
+        let remarcacao = 0,
+            cancelamento = 0,
+            tratativasCS = 0,
+            infraestrutura = 0,
+            resolucaoN2 = 0;
         let mapa = {};
 
         for (let i = 1; i < linhas.length; i++) {
             if (!linhas[i].trim()) continue;
 
-            const colunas = dividirColunas(linhas[i]);
-            const servicoOriginal = colunas[indexServico]?.trim();
-            const statusOriginal = colunas[indexStatus]?.trim();
+            // Usar a nova função de divisão para cada linha
+            const colunas = this.dividirColunas(linhas[i]);
+
+            // Verifica se temos colunas suficientes
+            if (colunas.length <= Math.max(indexServico, indexStatus)) {
+                console.log(`Linha ${i + 1} ignorada: colunas insuficientes`, colunas);
+                continue;
+            }
+
+            const servicoOriginal = colunas[indexServico]?.trim() || "";
+            const statusOriginal = colunas[indexStatus]?.trim() || "";
 
             if (!servicoOriginal || !statusOriginal) continue;
 
@@ -389,7 +456,17 @@ const ProcessadorTabela = {
             }
         }
 
-        return { planejamento, execucao, totalExecutado, remarcacao, cancelamento, tratativasCS, infraestrutura, resolucaoN2, mapa };
+        return {
+            planejamento,
+            execucao,
+            totalExecutado,
+            remarcacao,
+            cancelamento,
+            tratativasCS,
+            infraestrutura,
+            resolucaoN2,
+            mapa,
+        };
     },
 };
 
@@ -422,7 +499,9 @@ const LoginManager = {
 
         if (show) {
             errorDiv.style.display = "flex";
-            setTimeout(() => { errorDiv.style.display = "none"; }, 3000);
+            setTimeout(() => {
+                errorDiv.style.display = "none";
+            }, 3000);
         } else {
             errorDiv.style.display = "none";
         }
@@ -448,7 +527,7 @@ const LoginManager = {
 
         setTimeout(() => {
             if (this.isValidEmail(email) && password === PASSWORD) {
-                const sessionData = { email, loginTime: new Date().getTime(), expiresIn: SESSION_DURATION };
+                const sessionData = {email, loginTime: new Date().getTime(), expiresIn: SESSION_DURATION};
                 localStorage.setItem("vtx_session", JSON.stringify(sessionData));
                 window.location.href = "painel.html";
             } else {
@@ -518,7 +597,7 @@ const UI = {
         const dataAtual = document.getElementById("current-date");
         if (dataAtual) {
             const hoje = new Date();
-            const opcoes = { weekday: "long", year: "numeric", month: "long", day: "numeric" };
+            const opcoes = {weekday: "long", year: "numeric", month: "long", day: "numeric"};
             dataAtual.textContent = hoje.toLocaleDateString("pt-BR", opcoes);
         }
 
@@ -572,12 +651,17 @@ const UI = {
     atualizarTempoTotal() {
         let tecnico = document.getElementById("tecnico")?.value || "";
         let data = document.getElementById("data-retirada")?.value || "";
-        let total = DataManager.registros.filter((r) => r.tecnico === tecnico && r.data === data).reduce((acc, r) => acc + r.minutos, 0);
+        let total = DataManager.registros
+        .filter((r) => r.tecnico === tecnico && r.data === data)
+        .reduce((acc, r) => acc + r.minutos, 0);
         let jornada = document.getElementById("jornada")?.value || "Comercial";
         let tempoTotal = document.getElementById("tempoTotal");
 
         if (tempoTotal) {
-            tempoTotal.innerHTML = `<i class="fas fa-clock"></i> <span>Tempo a Retirar: <strong>${Utils.formatarTempo(total, jornada)}</strong></span>`;
+            tempoTotal.innerHTML = `<i class="fas fa-clock"></i> <span>Tempo a Retirar: <strong>${Utils.formatarTempo(
+                total,
+                jornada
+            )}</strong></span>`;
         }
     },
 
@@ -639,7 +723,16 @@ const UI = {
         let minutos = Utils.calcularMinutos(inicio, fim);
         if (minutos === null) return;
 
-        DataManager.registros.push({ data, tecnico, jornada, inicio, fim, motivo, minutos, dataSalva: new Date().toISOString() });
+        DataManager.registros.push({
+            data,
+            tecnico,
+            jornada,
+            inicio,
+            fim,
+            motivo,
+            minutos,
+            dataSalva: new Date().toISOString(),
+        });
         DataManager.salvarLocal();
         this.atualizarTempoTotal();
 
@@ -733,7 +826,12 @@ const UI = {
             if (this.tecnicosEditando[tecnico]) {
                 lista.forEach((r) => {
                     let indiceGlobal = DataManager.registros.findIndex(
-                        (reg) => reg.data === r.data && reg.tecnico === r.tecnico && reg.inicio === r.inicio && reg.fim === r.fim && reg.motivo === r.motivo
+                        (reg) =>
+                            reg.data === r.data &&
+                            reg.tecnico === r.tecnico &&
+                            reg.inicio === r.inicio &&
+                            reg.fim === r.fim &&
+                            reg.motivo === r.motivo
                     );
 
                     bloco.innerHTML += `
@@ -810,7 +908,9 @@ const UI = {
         const blocos = document.querySelectorAll(".equipe-bloco");
 
         let totalEquipes = 0;
-        nomes.forEach((nome) => { if (nome.value.trim() !== "") totalEquipes++; });
+        nomes.forEach((nome) => {
+            if (nome.value.trim() !== "") totalEquipes++;
+        });
 
         if (totalEquipes === 0) {
             alert("Adicione pelo menos uma equipe!");
@@ -818,13 +918,16 @@ const UI = {
         }
 
         let relatorio = "";
-        let totalPlanejamentoGeral = 0, totalExecutadoGeral = 0, totalRemarcacaoGeral = 0, totalCancelamentoGeral = 0;
+        let totalPlanejamentoGeral = 0,
+            totalExecutadoGeral = 0,
+            totalRemarcacaoGeral = 0,
+            totalCancelamentoGeral = 0;
 
         relatorio += `Relatório de Ativação – ${Utils.formatarData(data)} - ${cidade}\n`;
         relatorio += `Responsável: ${responsavel}\n`;
         relatorio += `Número de Equipes: ${totalEquipes}\n\n`;
 
-        const dadosParaSalvar = { cidade, responsavel, equipes: [] };
+        const dadosParaSalvar = {cidade, responsavel, equipes: []};
 
         for (let i = 0; i < nomes.length; i++) {
             const nome = nomes[i].value.trim();
@@ -881,21 +984,21 @@ const UI = {
             let retiradas = DataManager.buscarRetiradasPorTecnicoData(nome, data);
             if (retiradas && retiradas.length > 0) {
                 retiradas.forEach((retirada) => {
-                    relatorio += `${contadorJustificativas}º ${retirada.motivo} - Tempo: ${Utils.formatarTempo(retirada.minutos, retirada.jornada)}\n`;
+                    relatorio += `${contadorJustificativas}º ${retirada.motivo}\n`;
                     contadorJustificativas++;
                 });
             }
 
             relatorio += `\n`;
-            dadosParaSalvar.equipes.push({ nome, tabela: tabelas[i].value, justificativas: justificativasManuais });
+            dadosParaSalvar.equipes.push({nome, tabela: tabelas[i].value, justificativas: justificativasManuais});
         }
 
-        let blocoTotais = `    • Total de Protocolos: ${totalPlanejamentoGeral}\n`;
-        blocoTotais += `    • Total de Execução: ${totalExecutadoGeral.toFixed(2).replace(".", ",")}\n`;
-        blocoTotais += `    • Total de Remarcações: ${totalRemarcacaoGeral}\n`;
-        blocoTotais += `    • Total de Cancelamentos: ${totalCancelamentoGeral}\n\n`;
+        let blocoTotais = ``;
 
-        relatorio = relatorio.replace(`Número de Equipes: ${totalEquipes}\n\n`, `Número de Equipes: ${totalEquipes}\n\n${blocoTotais}`);
+        relatorio = relatorio.replace(
+            `Número de Equipes: ${totalEquipes}\n\n`,
+            `Número de Equipes: ${totalEquipes}\n\n${blocoTotais}`
+        );
 
         DataManager.salvarRelatorio(data, dadosParaSalvar);
 
@@ -929,7 +1032,10 @@ const UI = {
             if (dados.equipes && dados.equipes.length > 0) {
                 dados.equipes.forEach((equipe) => {
                     this.adicionarEquipe();
-                    const bloco = document.querySelectorAll(".equipe-bloco")[document.querySelectorAll(".equipe-bloco").length - 1];
+                    const bloco =
+                        document.querySelectorAll(".equipe-bloco")[
+                            document.querySelectorAll(".equipe-bloco").length - 1
+                        ];
                     bloco.querySelector(".nomeTecnico").value = equipe.nome || "";
                     bloco.querySelector(".tabelaDados").value = equipe.tabela || "";
 
@@ -937,7 +1043,9 @@ const UI = {
                     if (container && equipe.justificativas) {
                         equipe.justificativas.forEach((just) => {
                             this.adicionarJustificativa(container);
-                            container.querySelectorAll(".justificativa-texto")[container.querySelectorAll(".justificativa-texto").length - 1].value = just;
+                            container.querySelectorAll(".justificativa-texto")[
+                                container.querySelectorAll(".justificativa-texto").length - 1
+                            ].value = just;
                         });
                     }
                 });
@@ -981,7 +1089,9 @@ const UI = {
 
         if (!confirm("Deseja realmente excluir todos os registros desta data para este técnico?")) return;
 
-        DataManager.registros = DataManager.registros.filter((r) => !(r.data === dataSelecionada && r.tecnico === tecnicoSelecionado));
+        DataManager.registros = DataManager.registros.filter(
+            (r) => !(r.data === dataSelecionada && r.tecnico === tecnicoSelecionado)
+        );
         DataManager.salvarLocal();
         document.getElementById("resultado-retirada").innerHTML = "";
         this.atualizarTempoTotal();
@@ -998,7 +1108,9 @@ const UI = {
             return;
         }
 
-        navigator.clipboard.writeText(relatorioTexto).then(() => {
+        navigator.clipboard
+        .writeText(relatorioTexto)
+        .then(() => {
             const btn = document.querySelector(".btn-copy");
             if (btn) {
                 const textoOriginal = btn.innerHTML;
@@ -1009,7 +1121,8 @@ const UI = {
                     btn.style.background = "linear-gradient(135deg, #2c405c, #364d6b)";
                 }, 2000);
             }
-        }).catch(() => {
+        })
+        .catch(() => {
             const textArea = document.createElement("textarea");
             textArea.value = relatorioTexto;
             document.body.appendChild(textArea);
@@ -1022,30 +1135,30 @@ const UI = {
 
     mudarAba(aba) {
         // Atualizar título da página
-        const pageTitle = document.getElementById('page-title');
+        const pageTitle = document.getElementById("page-title");
         if (pageTitle) {
-            pageTitle.textContent = aba === 'ativacao' ? 'Relatório de Ativação' : 'Retirada de Tempo';
+            pageTitle.textContent = aba === "ativacao" ? "Relatório de Ativação" : "Retirada de Tempo";
         }
 
         // Remover active de todos os itens do menu
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.classList.remove('active');
+        document.querySelectorAll(".nav-item").forEach((item) => {
+            item.classList.remove("active");
         });
 
         // Adicionar active no item correspondente
-        const navItems = document.querySelectorAll('.nav-item');
+        const navItems = document.querySelectorAll(".nav-item");
         if (navItems.length >= 2) {
-            if (aba === 'ativacao') {
-                navItems[0].classList.add('active');
+            if (aba === "ativacao") {
+                navItems[0].classList.add("active");
             } else {
-                navItems[1].classList.add('active');
+                navItems[1].classList.add("active");
             }
         }
 
         // Mostrar a aba correspondente
-        document.getElementById('aba-ativacao').classList.remove('ativo');
-        document.getElementById('aba-retirada').classList.remove('ativo');
-        document.getElementById('aba-' + aba).classList.add('ativo');
+        document.getElementById("aba-ativacao").classList.remove("ativo");
+        document.getElementById("aba-retirada").classList.remove("ativo");
+        document.getElementById("aba-" + aba).classList.add("ativo");
     },
 
     logout() {
@@ -1104,4 +1217,4 @@ window.excluirRetirada = (indice) => UI.excluirRetirada(indice);
 window.logout = () => UI.logout();
 window.togglePassword = () => LoginManager.togglePassword();
 window.handleLogin = () => LoginManager.handleLogin();
-window.toggleSidebar = () => document.querySelector('.sidebar').classList.toggle('active');
+window.toggleSidebar = () => document.querySelector(".sidebar").classList.toggle("active");
