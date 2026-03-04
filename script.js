@@ -130,12 +130,12 @@ const TABELA_PESOS = {
 const Utils = {
     normalizarTexto(texto) {
         return texto
-            .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "")
-            .replace(/[–—]/g, "-")
-            .replace(/\s+/g, " ")
-            .toUpperCase()
-            .trim();
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[–—]/g, "-")
+        .replace(/\s+/g, " ")
+        .toUpperCase()
+        .trim();
     },
 
     formatarDataISO(dataISO) {
@@ -375,12 +375,12 @@ const ProcessadorTabela = {
 
         const normalizar = (texto) => {
             return texto
-                .normalize("NFD")
-                .replace(/[\u0300-\u036f]/g, "")
-                .replace(/[–—]/g, "-")
-                .replace(/\s+/g, " ")
-                .toUpperCase()
-                .trim();
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[–—]/g, "-")
+            .replace(/\s+/g, " ")
+            .toUpperCase()
+            .trim();
         };
 
         const calcularValorServico = (servico) => {
@@ -525,7 +525,7 @@ const LoginManager = {
 
         setTimeout(() => {
             if (this.isValidEmail(email) && password === PASSWORD) {
-                const sessionData = { email, loginTime: new Date().getTime(), expiresIn: SESSION_DURATION };
+                const sessionData = {email, loginTime: new Date().getTime(), expiresIn: SESSION_DURATION};
                 localStorage.setItem("vtx_session", JSON.stringify(sessionData));
                 window.location.href = "painel.html";
             } else {
@@ -595,7 +595,7 @@ const UI = {
         const dataAtual = document.getElementById("current-date");
         if (dataAtual) {
             const hoje = new Date();
-            const opcoes = { weekday: "long", year: "numeric", month: "long", day: "numeric" };
+            const opcoes = {weekday: "long", year: "numeric", month: "long", day: "numeric"};
             dataAtual.textContent = hoje.toLocaleDateString("pt-BR", opcoes);
         }
 
@@ -650,9 +650,9 @@ const UI = {
         if (tecnicoInput) tecnicoInput.addEventListener("input", () => this.atualizarTempoTotal());
         if (dataRetirada) dataRetirada.addEventListener("change", () => this.atualizarTempoTotal());
         if (jornadaSelect) jornadaSelect.addEventListener("change", () => this.atualizarTempoTotal());
-        
+
         // ADICIONADO: Restaurar a última aba selecionada
-        const ultimaAba = localStorage.getItem('aba_atual');
+        const ultimaAba = localStorage.getItem("aba_atual");
         if (ultimaAba) {
             this.mudarAba(ultimaAba);
         }
@@ -671,8 +671,8 @@ const UI = {
         let tecnico = document.getElementById("tecnico")?.value || "";
         let data = document.getElementById("data-retirada")?.value || "";
         let total = DataManager.registros
-            .filter((r) => r.tecnico === tecnico && r.data === data)
-            .reduce((acc, r) => acc + r.minutos, 0);
+        .filter((r) => r.tecnico === tecnico && r.data === data)
+        .reduce((acc, r) => acc + r.minutos, 0);
         let jornada = document.getElementById("jornada")?.value || "Comercial";
         let tempoTotal = document.getElementById("tempoTotal");
 
@@ -799,18 +799,71 @@ const UI = {
     },
 
     excluirRetirada(indice) {
-        if (!confirm("Deseja realmente excluir este período?")) return;
-        let tecnico = DataManager.registros[indice].tecnico;
-        DataManager.registros.splice(indice, 1);
-        DataManager.salvarLocal();
+        Swal.fire({
+            title: "🗑️ Confirmar exclusão",
+            text: "Deseja realmente excluir este período?",
+            icon: "question",
+            iconColor: "#E8465D",
+            showCancelButton: true,
+            confirmButtonColor: "#dc3545",
+            cancelButtonColor: "#64748b",
+            confirmButtonText: "Sim, apagar!",
+            cancelButtonText: "Cancelar",
+            background: "#ffffff",
+            reverseButtons: true,
+            customClass: {
+                popup: "animate__animated animate__zoomIn",
+                confirmButton: "swal2-confirm-delete",
+            },
+        }).then((result) => {
+            if (result.isConfirmed) {
+                try {
+                    // Salva o técnico antes de remover
+                    let tecnico = DataManager.registros[indice].tecnico;
 
-        let dataSelecionada = document.getElementById("data-retirada")?.value;
-        let aindaTemRegistros = DataManager.registros.some((r) => r.tecnico === tecnico && r.data === dataSelecionada);
+                    // Remove o registro
+                    DataManager.registros.splice(indice, 1);
+                    DataManager.salvarLocal();
 
-        if (!aindaTemRegistros) delete this.tecnicosEditando[tecnico];
+                    let dataSelecionada = document.getElementById("data-retirada")?.value;
 
-        this.atualizarTempoTotal();
-        this.finalizarRetirada();
+                    // Verifica se ainda existem registros para este técnico nesta data
+                    let aindaTemRegistros = DataManager.registros.some(
+                        (r) => r.tecnico === tecnico && r.data === dataSelecionada
+                    );
+
+                    if (!aindaTemRegistros) {
+                        delete this.tecnicosEditando[tecnico];
+                    }
+
+                    // Atualiza a exibição
+                    this.atualizarTempoTotal();
+                    this.finalizarRetirada();
+
+                    // Mostra mensagem de sucesso
+                    Swal.fire({
+                        icon: "success",
+                        title: "Excluído!",
+                        text: "O período foi removido com sucesso.",
+                        timer: 1500,
+                        showConfirmButton: false,
+                        toast: true,
+                        position: "top-end",
+                        background: "#ffffff",
+                        iconColor: "#10b981",
+                    });
+                } catch (error) {
+                    console.error("Erro ao excluir:", error);
+                    Swal.fire({
+                        icon: "error",
+                        title: "Erro!",
+                        text: "Erro ao excluir o registro. Tente novamente.",
+                        confirmButtonColor: "#E8465D",
+                        background: "#ffffff",
+                    });
+                }
+            }
+        });
     },
 
     finalizarRetirada() {
@@ -946,7 +999,7 @@ const UI = {
         relatorio += `Responsável: ${responsavel}\n`;
         relatorio += `Número de Equipes: ${totalEquipes}\n\n`;
 
-        const dadosParaSalvar = { cidade, responsavel, equipes: [] };
+        const dadosParaSalvar = {cidade, responsavel, equipes: []};
 
         for (let i = 0; i < nomes.length; i++) {
             const nome = nomes[i].value.trim();
@@ -1009,7 +1062,7 @@ const UI = {
             }
 
             relatorio += `\n`;
-            dadosParaSalvar.equipes.push({ nome, tabela: tabelas[i].value, justificativas: justificativasManuais });
+            dadosParaSalvar.equipes.push({nome, tabela: tabelas[i].value, justificativas: justificativasManuais});
         }
 
         let blocoTotais = ``;
@@ -1080,21 +1133,57 @@ const UI = {
     apagarRelatorio() {
         const data = document.getElementById("data-ativacao")?.value;
         if (!data) {
-            alert("Selecione uma data primeiro!");
+            Swal.fire({
+                icon: "warning",
+                title: "Atenção!",
+                text: "Selecione uma data primeiro!",
+                timer: 2000,
+                showConfirmButton: false,
+                toast: true,
+                position: "top-end",
+            });
             return;
         }
 
-        if (!confirm(`⚠️ Deseja realmente apagar o relatório da data ${Utils.formatarData(data)}?`)) return;
+        Swal.fire({
+            title: "⚠️ Confirmar exclusão",
+            html: `Deseja realmente apagar o relatório da data <strong>${Utils.formatarData(data)}</strong>?`,
+            icon: "warning",
+            iconColor: "#E8465D",
+            showCancelButton: true,
+            confirmButtonColor: "#dc3545",
+            cancelButtonColor: "#64748b",
+            confirmButtonText: "Sim, apagar!",
+            cancelButtonText: "Cancelar",
+            background: "#ffffff",
+            reverseButtons: true,
+        }).then((result) => {
+            if (result.isConfirmed) {
+                if (DataManager.apagarRelatorioPorData(data)) {
+                    document.getElementById("resultado-ativacao").innerHTML = "";
+                    document.getElementById("equipes").innerHTML = "";
+                    document.getElementById("cidade").value = "";
+                    document.getElementById("responsavel").value = "";
 
-        if (DataManager.apagarRelatorioPorData(data)) {
-            document.getElementById("resultado-ativacao").innerHTML = "";
-            document.getElementById("equipes").innerHTML = "";
-            document.getElementById("cidade").value = "";
-            document.getElementById("responsavel").value = "";
-            alert(`✅ Relatório da data ${Utils.formatarData(data)} apagado com sucesso!`);
-        } else {
-            alert(`❌ Nenhum relatório encontrado para a data ${Utils.formatarData(data)}.`);
-        }
+                    Swal.fire({
+                        icon: "success",
+                        title: "✅ Apagado!",
+                        text: `Relatório da data ${Utils.formatarData(data)} apagado com sucesso!`,
+                        timer: 2000,
+                        showConfirmButton: false,
+                        toast: true,
+                        position: "top-end",
+                    });
+                } else {
+                    Swal.fire({
+                        icon: "error",
+                        title: "❌ Erro",
+                        text: `Nenhum relatório encontrado para a data ${Utils.formatarData(data)}.`,
+                        confirmButtonColor: "#E8465D",
+                    });
+                }
+            }
+        });
     },
 
     limparDataRetirada() {
@@ -1102,19 +1191,56 @@ const UI = {
         let tecnicoSelecionado = document.getElementById("tecnico")?.value.trim();
 
         if (!dataSelecionada || !tecnicoSelecionado) {
-            alert("Selecione uma data e um técnico!");
+            Swal.fire({
+                icon: "warning",
+                title: "Atenção!",
+                text: "Selecione uma data e um técnico!",
+                timer: 2000,
+                showConfirmButton: false,
+                toast: true,
+                position: "top-end",
+                background: "#ffffff",
+                iconColor: "#f59e0b",
+            });
             return;
         }
 
-        if (!confirm("Deseja realmente excluir todos os registros desta data para este técnico?")) return;
+        Swal.fire({
+            title: "⚠️ Limpar todos os registros?",
+            html: `Deseja realmente excluir todos os registros da data <strong>${Utils.formatarData(
+                dataSelecionada
+            )}</strong> para o técnico <strong>${tecnicoSelecionado}</strong>?`,
+            icon: "warning",
+            iconColor: "#E8465D",
+            showCancelButton: true,
+            confirmButtonColor: "#dc3545",
+            cancelButtonColor: "#64748b",
+            confirmButtonText: "Sim, limpar tudo!",
+            cancelButtonText: "Cancelar",
+            background: "#ffffff",
+            reverseButtons: true,
+        }).then((result) => {
+            if (result.isConfirmed) {
+                DataManager.registros = DataManager.registros.filter(
+                    (r) => !(r.data === dataSelecionada && r.tecnico === tecnicoSelecionado)
+                );
+                DataManager.salvarLocal();
+                document.getElementById("resultado-retirada").innerHTML = "";
+                this.atualizarTempoTotal();
 
-        DataManager.registros = DataManager.registros.filter(
-            (r) => !(r.data === dataSelecionada && r.tecnico === tecnicoSelecionado)
-        );
-        DataManager.salvarLocal();
-        document.getElementById("resultado-retirada").innerHTML = "";
-        this.atualizarTempoTotal();
-        alert("Registros removidos com sucesso!");
+                Swal.fire({
+                    icon: "success",
+                    title: "Limpo!",
+                    text: "Todos os registros foram removidos com sucesso.",
+                    timer: 1500,
+                    showConfirmButton: false,
+                    toast: true,
+                    position: "top-end",
+                    background: "#ffffff",
+                    iconColor: "#10b981",
+                });
+            }
+        });
     },
 
     copiarRelatorio() {
@@ -1128,28 +1254,28 @@ const UI = {
         }
 
         navigator.clipboard
-            .writeText(relatorioTexto)
-            .then(() => {
-                const btn = document.querySelector(".btn-copy");
-                if (btn) {
-                    const textoOriginal = btn.innerHTML;
-                    btn.innerHTML = '<i class="fas fa-check"></i> Copiado!';
-                    btn.style.background = "linear-gradient(135deg, #28a745, #34ce57)";
-                    setTimeout(() => {
-                        btn.innerHTML = textoOriginal;
-                        btn.style.background = "linear-gradient(135deg, #2c405c, #364d6b)";
-                    }, 2000);
-                }
-            })
-            .catch(() => {
-                const textArea = document.createElement("textarea");
-                textArea.value = relatorioTexto;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand("copy");
-                document.body.removeChild(textArea);
-                alert("Relatório copiado!");
-            });
+        .writeText(relatorioTexto)
+        .then(() => {
+            const btn = document.querySelector(".btn-copy");
+            if (btn) {
+                const textoOriginal = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check"></i> Copiado!';
+                btn.style.background = "linear-gradient(135deg, #28a745, #34ce57)";
+                setTimeout(() => {
+                    btn.innerHTML = textoOriginal;
+                    btn.style.background = "linear-gradient(135deg, #2c405c, #364d6b)";
+                }, 2000);
+            }
+        })
+        .catch(() => {
+            const textArea = document.createElement("textarea");
+            textArea.value = relatorioTexto;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand("copy");
+            document.body.removeChild(textArea);
+            alert("Relatório copiado!");
+        });
     },
 
     mudarAba(aba) {
@@ -1180,7 +1306,7 @@ const UI = {
         document.getElementById("aba-" + aba).classList.add("ativo");
 
         // Salvar a aba atual no localStorage para manter o estado
-        localStorage.setItem('aba_atual', aba);
+        localStorage.setItem("aba_atual", aba);
     },
 
     logout() {
