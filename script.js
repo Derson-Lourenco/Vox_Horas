@@ -130,12 +130,12 @@ const TABELA_PESOS = {
 const Utils = {
     normalizarTexto(texto) {
         return texto
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[–—]/g, "-")
-        .replace(/\s+/g, " ")
-        .toUpperCase()
-        .trim();
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[–—]/g, "-")
+            .replace(/\s+/g, " ")
+            .toUpperCase()
+            .trim();
     },
 
     formatarDataISO(dataISO) {
@@ -194,7 +194,6 @@ const Utils = {
     },
 };
 
-// ========== CONVERSOR DE TEMPO ==========
 // ========== CONVERSOR DE TEMPO ==========
 const ConversorTempo = {
     obterTempoConvertido(minutos, jornada) {
@@ -294,7 +293,6 @@ const DataManager = {
 };
 
 // ========== PROCESSADOR DE TABELA ==========
-// ========== PROCESSADOR DE TABELA ==========
 const ProcessadorTabela = {
     encontrarPesoServico(servicoOriginal) {
         const servicoNormalizado = Utils.normalizarTexto(servicoOriginal);
@@ -377,12 +375,12 @@ const ProcessadorTabela = {
 
         const normalizar = (texto) => {
             return texto
-            .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "")
-            .replace(/[–—]/g, "-")
-            .replace(/\s+/g, " ")
-            .toUpperCase()
-            .trim();
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .replace(/[–—]/g, "-")
+                .replace(/\s+/g, " ")
+                .toUpperCase()
+                .trim();
         };
 
         const calcularValorServico = (servico) => {
@@ -527,7 +525,7 @@ const LoginManager = {
 
         setTimeout(() => {
             if (this.isValidEmail(email) && password === PASSWORD) {
-                const sessionData = {email, loginTime: new Date().getTime(), expiresIn: SESSION_DURATION};
+                const sessionData = { email, loginTime: new Date().getTime(), expiresIn: SESSION_DURATION };
                 localStorage.setItem("vtx_session", JSON.stringify(sessionData));
                 window.location.href = "painel.html";
             } else {
@@ -597,7 +595,7 @@ const UI = {
         const dataAtual = document.getElementById("current-date");
         if (dataAtual) {
             const hoje = new Date();
-            const opcoes = {weekday: "long", year: "numeric", month: "long", day: "numeric"};
+            const opcoes = { weekday: "long", year: "numeric", month: "long", day: "numeric" };
             dataAtual.textContent = hoje.toLocaleDateString("pt-BR", opcoes);
         }
 
@@ -617,6 +615,20 @@ const UI = {
         }
     },
 
+    // NOVA FUNÇÃO PARA ATUALIZAR O TÍTULO DA PÁGINA
+    atualizarTituloPagina() {
+        const pageTitle = document.getElementById("page-title");
+        if (pageTitle) {
+            // Verifica qual aba está ativa
+            const abaAtivacao = document.getElementById("aba-ativacao");
+            if (abaAtivacao && abaAtivacao.classList.contains("ativo")) {
+                pageTitle.textContent = "Relatório";
+            } else {
+                pageTitle.textContent = "Retirada de Tempo";
+            }
+        }
+    },
+
     init() {
         if (document.getElementById("login-form")) {
             LoginManager.initLoginPage();
@@ -626,6 +638,7 @@ const UI = {
         this.atualizarTempoTotal();
         this.preencherDatasAtuais();
         this.atualizarInfoCabecalho();
+        this.atualizarTituloPagina(); // ADICIONADO: Define o título correto ao carregar
 
         const btnCopy = document.querySelector(".btn-copy");
         if (btnCopy) btnCopy.style.display = "none";
@@ -637,6 +650,12 @@ const UI = {
         if (tecnicoInput) tecnicoInput.addEventListener("input", () => this.atualizarTempoTotal());
         if (dataRetirada) dataRetirada.addEventListener("change", () => this.atualizarTempoTotal());
         if (jornadaSelect) jornadaSelect.addEventListener("change", () => this.atualizarTempoTotal());
+        
+        // ADICIONADO: Restaurar a última aba selecionada
+        const ultimaAba = localStorage.getItem('aba_atual');
+        if (ultimaAba) {
+            this.mudarAba(ultimaAba);
+        }
     },
 
     preencherDatasAtuais() {
@@ -652,8 +671,8 @@ const UI = {
         let tecnico = document.getElementById("tecnico")?.value || "";
         let data = document.getElementById("data-retirada")?.value || "";
         let total = DataManager.registros
-        .filter((r) => r.tecnico === tecnico && r.data === data)
-        .reduce((acc, r) => acc + r.minutos, 0);
+            .filter((r) => r.tecnico === tecnico && r.data === data)
+            .reduce((acc, r) => acc + r.minutos, 0);
         let jornada = document.getElementById("jornada")?.value || "Comercial";
         let tempoTotal = document.getElementById("tempoTotal");
 
@@ -927,7 +946,7 @@ const UI = {
         relatorio += `Responsável: ${responsavel}\n`;
         relatorio += `Número de Equipes: ${totalEquipes}\n\n`;
 
-        const dadosParaSalvar = {cidade, responsavel, equipes: []};
+        const dadosParaSalvar = { cidade, responsavel, equipes: [] };
 
         for (let i = 0; i < nomes.length; i++) {
             const nome = nomes[i].value.trim();
@@ -990,7 +1009,7 @@ const UI = {
             }
 
             relatorio += `\n`;
-            dadosParaSalvar.equipes.push({nome, tabela: tabelas[i].value, justificativas: justificativasManuais});
+            dadosParaSalvar.equipes.push({ nome, tabela: tabelas[i].value, justificativas: justificativasManuais });
         }
 
         let blocoTotais = ``;
@@ -1109,35 +1128,35 @@ const UI = {
         }
 
         navigator.clipboard
-        .writeText(relatorioTexto)
-        .then(() => {
-            const btn = document.querySelector(".btn-copy");
-            if (btn) {
-                const textoOriginal = btn.innerHTML;
-                btn.innerHTML = '<i class="fas fa-check"></i> Copiado!';
-                btn.style.background = "linear-gradient(135deg, #28a745, #34ce57)";
-                setTimeout(() => {
-                    btn.innerHTML = textoOriginal;
-                    btn.style.background = "linear-gradient(135deg, #2c405c, #364d6b)";
-                }, 2000);
-            }
-        })
-        .catch(() => {
-            const textArea = document.createElement("textarea");
-            textArea.value = relatorioTexto;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand("copy");
-            document.body.removeChild(textArea);
-            alert("Relatório copiado!");
-        });
+            .writeText(relatorioTexto)
+            .then(() => {
+                const btn = document.querySelector(".btn-copy");
+                if (btn) {
+                    const textoOriginal = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-check"></i> Copiado!';
+                    btn.style.background = "linear-gradient(135deg, #28a745, #34ce57)";
+                    setTimeout(() => {
+                        btn.innerHTML = textoOriginal;
+                        btn.style.background = "linear-gradient(135deg, #2c405c, #364d6b)";
+                    }, 2000);
+                }
+            })
+            .catch(() => {
+                const textArea = document.createElement("textarea");
+                textArea.value = relatorioTexto;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand("copy");
+                document.body.removeChild(textArea);
+                alert("Relatório copiado!");
+            });
     },
 
     mudarAba(aba) {
         // Atualizar título da página
         const pageTitle = document.getElementById("page-title");
         if (pageTitle) {
-            pageTitle.textContent = aba === "ativacao" ? "Relatório de Ativação" : "Retirada de Tempo";
+            pageTitle.textContent = aba === "ativacao" ? "Relatório" : "Retirada de Tempo";
         }
 
         // Remover active de todos os itens do menu
@@ -1159,6 +1178,9 @@ const UI = {
         document.getElementById("aba-ativacao").classList.remove("ativo");
         document.getElementById("aba-retirada").classList.remove("ativo");
         document.getElementById("aba-" + aba).classList.add("ativo");
+
+        // Salvar a aba atual no localStorage para manter o estado
+        localStorage.setItem('aba_atual', aba);
     },
 
     logout() {
