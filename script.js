@@ -127,6 +127,8 @@ const TABELA_PESOS = {
     "VISTORIA WIFIPRO": 1.5,
 };
 
+const SERVICOS_IGNORADOS = ["ALMOCO", "DESLOCAMENTO", "CHUVA", "RETIRADA DE TEMPO", "BANCO DE HORAS"];
+
 // ========== UTILITÁRIOS ==========
 const Utils = {
     normalizarTexto(texto) {
@@ -425,10 +427,17 @@ const ProcessadorTabela = {
             const servicoOriginal = colunas[indexServico]?.trim() || "";
             const statusOriginal = colunas[indexStatus]?.trim() || "";
 
-            if (!servicoOriginal || !statusOriginal) continue;
+            if (!servicoOriginal) continue;
 
             const servico = normalizar(servicoOriginal);
             const status = normalizar(statusOriginal);
+
+            // 🔴 IGNORA SERVIÇOS COMO ALMOÇO, DESLOCAMENTO, ETC
+            const linhaNormalizada = normalizar(linhas[i]);
+
+            if (SERVICOS_IGNORADOS.some((p) => linhaNormalizada.includes(p))) {
+                continue;
+            }
 
             planejamento++;
 
