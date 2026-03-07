@@ -18,7 +18,7 @@ const ALLOWED_EMAILS = [
     "maria.vtx@gmail.com",
 ];
 
-const PASSWORD = "vtx2026";
+const PASSWORD = "795816";
 const SESSION_DURATION = 10 * 60 * 60 * 1000; // 10 horas em milissegundos
 
 // ========== TABELA DE CONVERSÃO 12/36 PARA 8H ==========
