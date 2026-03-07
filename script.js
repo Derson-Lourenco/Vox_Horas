@@ -10,12 +10,13 @@ const CONFIG = {
 // ========== LISTA DE EMAILS AUTORIZADOS ==========
 const ALLOWED_EMAILS = [
     "anderson.vtx@gmail.com",
-    "nadya.vtx@gmail.com",
+    "teste@gmail.com",
     "hamuel.vtx@gmail.com",
-    "lucas.vtx@gmail.com",
-    "jailton.vtx@gmail.com",
-    "rafael.vtx@gmail.com",
-    "maria.vtx@gmail.com",
+    // "nadya.vtx@gmail.com",
+    // "lucas.vtx@gmail.com",
+    // "jailton.vtx@gmail.com",
+    // "rafael.vtx@gmail.com",
+    // "maria.vtx@gmail.com",
 ];
 
 const PASSWORD = "795816";
