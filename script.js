@@ -360,8 +360,9 @@ const ProcessadorTabela = {
         const linhas = texto.trim().split("\n");
         if (linhas.length <= 1) return null;
 
-        // Usar a nova função de divisão
         const cabecalho = this.dividirColunas(linhas[0]);
+
+        const indexProtocolo = cabecalho.findIndex((c) => c.toLowerCase().includes("protocolo"));
 
         const indexServico = cabecalho.findIndex(
             (c) => c.toLowerCase().includes("serviço") || c.toLowerCase().includes("servico")
@@ -415,15 +416,14 @@ const ProcessadorTabela = {
         for (let i = 1; i < linhas.length; i++) {
             if (!linhas[i].trim()) continue;
 
-            // Usar a nova função de divisão para cada linha
             const colunas = this.dividirColunas(linhas[i]);
 
-            // Verifica se temos colunas suficientes
             if (colunas.length <= Math.max(indexServico, indexStatus)) {
                 console.log(`Linha ${i + 1} ignorada: colunas insuficientes`, colunas);
                 continue;
             }
 
+            const protocolo = indexProtocolo !== -1 ? colunas[indexProtocolo]?.trim() || "" : "";
             const servicoOriginal = colunas[indexServico]?.trim() || "";
             const statusOriginal = colunas[indexStatus]?.trim() || "";
 
@@ -432,8 +432,7 @@ const ProcessadorTabela = {
             const servico = normalizar(servicoOriginal);
             const status = normalizar(statusOriginal);
 
-            // 🔴 IGNORA SERVIÇOS COMO ALMOÇO, DESLOCAMENTO, ETC
-            const linhaNormalizada = normalizar(linhas[i]);
+            const linhaNormalizada = servico;
 
             if (SERVICOS_IGNORADOS.some((p) => linhaNormalizada.includes(p))) {
                 continue;
@@ -455,6 +454,7 @@ const ProcessadorTabela = {
                 execucao++;
                 const valor = calcularValorServico(servico);
                 totalExecutado += valor;
+
                 if (!mapa[servicoOriginal]) mapa[servicoOriginal] = 0;
                 mapa[servicoOriginal] += 1;
 
