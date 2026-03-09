@@ -357,7 +357,20 @@ const ProcessadorTabela = {
     processar(texto) {
         if (!texto || texto.trim() === "") return null;
 
-        const linhas = texto.trim().split("\n");
+        // ===== NOVO: LIMPEZA ROBUSTA DOS DADOS =====
+        // Remove todos os caracteres invisíveis e normaliza
+        let textoLimpo = texto
+        // Remove \r (retorno de carro)
+        .replace(/\r/g, "")
+        // Remove caracteres de controle (exceto \n e \t)
+        .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "")
+        // Remove espaços no início e fim de cada linha
+        .split("\n")
+        .map((linha) => linha.trim())
+        .join("\n");
+        // ===== FIM DA LIMPEZA =====
+
+        const linhas = textoLimpo.trim().split("\n");
         if (linhas.length <= 1) return null;
 
         const cabecalho = this.dividirColunas(linhas[0]);
@@ -423,9 +436,12 @@ const ProcessadorTabela = {
                 continue;
             }
 
-            const protocolo = indexProtocolo !== -1 ? colunas[indexProtocolo]?.trim() || "" : "";
-            const servicoOriginal = colunas[indexServico]?.trim() || "";
-            const statusOriginal = colunas[indexStatus]?.trim() || "";
+            // ===== NOVO: LIMPEZA INDIVIDUAL DE CADA CAMPO =====
+            const protocolo =
+                indexProtocolo !== -1 ? (colunas[indexProtocolo]?.trim() || "").replace(/[\x00-\x1F\x7F]/g, "") : "";
+            const servicoOriginal = (colunas[indexServico]?.trim() || "").replace(/[\x00-\x1F\x7F]/g, "");
+            const statusOriginal = (colunas[indexStatus]?.trim() || "").replace(/[\x00-\x1F\x7F]/g, "");
+            // ===== FIM DA LIMPEZA =====
 
             if (!servicoOriginal) continue;
 
