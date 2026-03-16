@@ -378,6 +378,8 @@ const ProcessadorTabela = {
     processar(texto) {
         if (!texto || texto.trim() === "") return null;
 
+        texto = this.corrigirQuebraLinhas(texto);
+
         // ===== NOVO: LIMPEZA ROBUSTA DOS DADOS =====
         // Remove todos os caracteres invisíveis e normaliza
         let textoLimpo = texto
