@@ -354,6 +354,27 @@ const ProcessadorTabela = {
         return colunas;
     },
 
+    corrigirQuebraLinhas(texto) {
+        const linhas = texto.split("\n");
+        const resultado = [];
+
+        for (let i = 0; i < linhas.length; i++) {
+            let linha = linhas[i].trim();
+
+            if (!linha) continue;
+
+            // se não começa com número grande (protocolo)
+            // então é continuação da linha anterior
+            if (!/^\d{5,}/.test(linha) && resultado.length > 0) {
+                resultado[resultado.length - 1] += " " + linha;
+            } else {
+                resultado.push(linha);
+            }
+        }
+
+        return resultado.join("\n");
+    },
+
     processar(texto) {
         if (!texto || texto.trim() === "") return null;
 
