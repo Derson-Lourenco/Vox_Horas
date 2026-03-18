@@ -489,7 +489,7 @@ const ProcessadorTabela = {
                 continue;
             }
 
-            if (status.includes("OK") || status.includes("FEITO")) {
+            if (status.includes("OK") || status.includes("FEITO") || status.includes("ESCALONAMENTO")) {
                 execucao++;
                 const valor = calcularValorServico(servico);
                 totalExecutado += valor;
@@ -636,6 +636,53 @@ const LoginManager = {
     },
 };
 
+// ========== FUNÇÃO PARA PREENCHER DIA TODO ==========
+window.preencherDiaTodo = function () {
+    // Verifica se todos os campos obrigatórios estão preenchidos
+    let data = document.getElementById("data-retirada")?.value;
+    let tecnico = document.getElementById("tecnico")?.value.trim();
+    let jornada = document.getElementById("jornada")?.value;
+
+    if (!data || !tecnico || !jornada) {
+        Swal.fire({
+            icon: "warning",
+            title: "Campos obrigatórios",
+            text: "Preencha Data, Técnico e Carga Horária primeiro!",
+            timer: 2000,
+            showConfirmButton: false,
+            toast: true,
+            position: "top-end",
+        });
+        return;
+    }
+
+    // Preenche os campos de hora
+    document.getElementById("inicio").value = "00:00";
+    document.getElementById("fim").value = "23:59";
+
+    // NÃO preenche o motivo - mantém o que o usuário digitou
+
+    // Feedback visual rápido
+    const btn = event?.currentTarget;
+    if (btn) {
+        btn.style.transform = "scale(0.95)";
+        setTimeout(() => {
+            btn.style.transform = "scale(1)";
+        }, 200);
+    }
+
+    // Mostra notificação
+    Swal.fire({
+        icon: "success",
+        title: "Horário preenchido!",
+        text: "00:00 às 23:59",
+        timer: 1500,
+        showConfirmButton: false,
+        toast: true,
+        position: "top-end",
+    });
+};
+
 // ========== INTERFACE DE USUÁRIO ==========
 const UI = {
     tecnicosEditando: {},
@@ -716,23 +763,34 @@ const UI = {
         if (dataRetirada && !dataRetirada.value) dataRetirada.value = hoje;
     },
 
+    // Dentro do objeto UI, substitua a função atualizarTempoTotal():
     atualizarTempoTotal() {
         let tecnico = document.getElementById("tecnico")?.value || "";
         let data = document.getElementById("data-retirada")?.value || "";
-        let total = DataManager.registros
-        .filter((r) => r.tecnico === tecnico && r.data === data)
-        .reduce((acc, r) => acc + r.minutos, 0);
+
+        let registros = DataManager.registros.filter((r) => r.tecnico === tecnico && r.data === data);
+
+        let total = registros.reduce((acc, r) => acc + r.minutos, 0);
         let jornada = document.getElementById("jornada")?.value || "Comercial";
         let tempoTotal = document.getElementById("tempoTotal");
 
         if (tempoTotal) {
-            tempoTotal.innerHTML = `<i class="fas fa-clock"></i> <span>Tempo a Retirar: <strong>${Utils.formatarTempo(
-                total,
-                jornada
-            )}</strong></span>`;
+            // Verifica se existe um registro de dia todo
+            let temDiaTodo = registros.some((r) => r.isDiaTodo);
+
+            let textoExibicao;
+            if (temDiaTodo) {
+                textoExibicao = `<i class="fas fa-clock"></i> <span>Tempo a Retirar: <strong>Retirar o dia todo</strong></span>`;
+            } else {
+                textoExibicao = `<i class="fas fa-clock"></i> <span>Tempo a Retirar: <strong>${Utils.formatarTempo(
+                    total,
+                    jornada
+                )}</strong></span>`;
+            }
+
+            tempoTotal.innerHTML = textoExibicao;
         }
     },
-
     adicionarJustificativa(container) {
         const justificativaItem = document.createElement("div");
         justificativaItem.className = "justificativa-item";
@@ -775,6 +833,7 @@ const UI = {
         container.appendChild(bloco);
     },
 
+    // Dentro do objeto UI, substitua a função adicionarRetirada():
     adicionarRetirada() {
         let data = document.getElementById("data-retirada")?.value;
         let tecnico = document.getElementById("tecnico")?.value.trim();
@@ -783,13 +842,16 @@ const UI = {
         let fim = document.getElementById("fim")?.value;
         let motivo = document.getElementById("motivo")?.value.trim();
 
-        if (!data || !tecnico || !jornada || !inicio || !fim || !motivo) {
-            alert("Preencha todos os campos!");
+        if (!data || !tecnico || !jornada || !inicio || !fim) {
+            alert("Preencha todos os campos obrigatórios (motivo é opcional)!");
             return;
         }
 
         let minutos = Utils.calcularMinutos(inicio, fim);
         if (minutos === null) return;
+
+        // VERIFICA SE É DIA TODO (00:00 às 23:59)
+        let isDiaTodo = inicio === "00:00" && fim === "23:59";
 
         DataManager.registros.push({
             data,
@@ -797,10 +859,12 @@ const UI = {
             jornada,
             inicio,
             fim,
-            motivo,
+            motivo: motivo || "",
             minutos,
+            isDiaTodo,
             dataSalva: new Date().toISOString(),
         });
+
         DataManager.salvarLocal();
         this.atualizarTempoTotal();
 
@@ -808,7 +872,6 @@ const UI = {
         document.getElementById("fim").value = "";
         document.getElementById("motivo").value = "";
     },
-
     editarTecnico(tecnico) {
         this.tecnicosEditando[tecnico] = true;
         this.finalizarRetirada();
@@ -935,6 +998,9 @@ const UI = {
             let total = lista.reduce((acc, r) => acc + r.minutos, 0);
             let jornada = lista[0]?.jornada || "";
 
+            // Verifica se tem registro de dia todo
+            let temDiaTodo = lista.some((r) => r.isDiaTodo);
+
             let bloco = document.createElement("div");
             bloco.style.marginBottom = "2rem";
 
@@ -942,9 +1008,16 @@ const UI = {
             bloco.innerHTML += `Data: ${Utils.formatarDataISO(dataSelecionada)}<br>`;
             bloco.innerHTML += `Técnico: ${tecnico}<br>`;
             bloco.innerHTML += `Carga Horária: ${jornada}<br>`;
-            bloco.innerHTML += `Tempo a Retirar: ${Utils.formatarTempo(total, jornada)}<br><br>`;
+
+            // LINHA DO TEMPO A RETIRAR
+            if (temDiaTodo) {
+                bloco.innerHTML += `Tempo a Retirar: Retirar o dia todo<br><br>`;
+            } else {
+                bloco.innerHTML += `Tempo a Retirar: ${Utils.formatarTempo(total, jornada)}<br><br>`;
+            }
 
             if (this.tecnicosEditando[tecnico]) {
+                // (código de edição existente - igual ao original)
                 lista.forEach((r) => {
                     let indiceGlobal = DataManager.registros.findIndex(
                         (reg) =>
@@ -956,53 +1029,53 @@ const UI = {
                     );
 
                     bloco.innerHTML += `
-                        <div style="background: rgba(255,255,255,0.9); padding: 1rem; border-radius: 16px; margin-bottom: 1rem;">
-                            <input type="time" id="edit-inicio-${indiceGlobal}" value="${r.inicio}" style="margin-bottom: 0.5rem;">
-                            <input type="time" id="edit-fim-${indiceGlobal}" value="${r.fim}" style="margin-bottom: 0.5rem;">
-                            <textarea id="edit-motivo-${indiceGlobal}" rows="2" style="margin-bottom: 0.5rem;">${r.motivo}</textarea>
-                            <div>
-                                <button onclick="excluirRetirada(${indiceGlobal})" style="min-width: 80px; padding: 0.5rem 1rem; font-size: 0.85rem; background: linear-gradient(135deg, #9e4244, #b14d4f);">
-                                    <i class="fas fa-trash"></i> Excluir
-                                </button>
-                            </div>
-                        </div>
-                    `;
+                <div style="background: rgba(255,255,255,0.9); padding: 1rem; border-radius: 16px; margin-bottom: 1rem;">
+                    <input type="time" id="edit-inicio-${indiceGlobal}" value="${r.inicio}" style="margin-bottom: 0.5rem;">
+                    <input type="time" id="edit-fim-${indiceGlobal}" value="${r.fim}" style="margin-bottom: 0.5rem;">
+                    <textarea id="edit-motivo-${indiceGlobal}" rows="2" style="margin-bottom: 0.5rem;">${r.motivo}</textarea>
+                    <div>
+                        <button onclick="excluirRetirada(${indiceGlobal})" style="min-width: 80px; padding: 0.5rem 1rem; font-size: 0.85rem; background: linear-gradient(135deg, #9e4244, #b14d4f);">
+                            <i class="fas fa-trash"></i> Excluir
+                        </button>
+                    </div>
+                </div>
+            `;
                 });
 
                 bloco.innerHTML += `
-                    <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-                        <button onclick="salvarEdicoesTecnico('${tecnico}')" style="min-width: 120px; padding: 0.5rem 1rem; background: linear-gradient(135deg, #28a745, #34ce57);">
-                            <i class="fas fa-save"></i> Salvar
-                        </button>
-                        <button onclick="cancelarEdicaoTecnico('${tecnico}')" style="min-width: 120px; padding: 0.5rem 1rem; background: linear-gradient(135deg, #6c757d, #868e96);">
-                            <i class="fas fa-times"></i> Cancelar
-                        </button>
-                    </div>
-                `;
+            <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                <button onclick="salvarEdicoesTecnico('${tecnico}')" style="min-width: 120px; padding: 0.5rem 1rem; background: linear-gradient(135deg, #28a745, #34ce57);">
+                    <i class="fas fa-save"></i> Salvar
+                </button>
+                <button onclick="cancelarEdicaoTecnico('${tecnico}')" style="min-width: 120px; padding: 0.5rem 1rem; background: linear-gradient(135deg, #6c757d, #868e96);">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+            </div>
+        `;
             } else {
                 lista.forEach((r) => {
-                    // --- INÍCIO DA MODIFICAÇÃO ---
-                    // Verifica se a jornada é 12/36
-                    if (r.jornada === CONFIG.JORNADAS.DOZE_TRINTA_SEIS) {
-                        // Formata o tempo original
-                        const tempoOriginalFormatado = Utils.minutosParaHoraMinutos(r.minutos);
-                        // Usa a função existente para formatar o tempo convertido
-                        const tempoConvertidoFormatado = Utils.formatarTempo(r.minutos, r.jornada);
-                        // Exibe no formato solicitado
-                        bloco.innerHTML += `Tempo: ${tempoConvertidoFormatado} (referente a ${tempoOriginalFormatado}).<br>`;
+                    // LINHA DO TEMPO
+                    if (r.isDiaTodo) {
+                        bloco.innerHTML += `Tempo: Retirar o dia todo.<br>`;
                     } else {
-                        // Para outras jornadas, mantém o formato original
-                        bloco.innerHTML += `Tempo: ${Utils.formatarTempo(r.minutos, r.jornada)}.<br>`;
+                        if (r.jornada === CONFIG.JORNADAS.DOZE_TRINTA_SEIS) {
+                            const tempoOriginalFormatado = Utils.minutosParaHoraMinutos(r.minutos);
+                            const tempoConvertidoFormatado = Utils.formatarTempo(r.minutos, r.jornada);
+                            bloco.innerHTML += `Tempo: ${tempoConvertidoFormatado} (referente a ${tempoOriginalFormatado}).<br>`;
+                        } else {
+                            bloco.innerHTML += `Tempo: ${Utils.formatarTempo(r.minutos, r.jornada)}.<br>`;
+                        }
                     }
-                    // --- FIM DA MODIFICAÇÃO ---
+
+                    // LINHA DO MOTIVO
                     bloco.innerHTML += `Motivo: ${r.motivo}<br><br>`;
                 });
 
                 bloco.innerHTML += `
-                    <button onclick="editarTecnico('${tecnico}')" style="min-width: 120px; padding: 0.5rem 1rem; margin-top: 0.5rem; background: linear-gradient(135deg, #4a6382, #5a7b9c);">
-                        <i class="fas fa-edit"></i> Editar
-                    </button>
-                `;
+            <button onclick="editarTecnico('${tecnico}')" style="min-width: 120px; padding: 0.5rem 1rem; margin-top: 0.5rem; background: linear-gradient(135deg, #4a6382, #5a7b9c);">
+                <i class="fas fa-edit"></i> Editar
+            </button>
+        `;
             }
 
             resultadoDiv.appendChild(bloco);
@@ -1415,3 +1488,4 @@ window.logout = () => UI.logout();
 window.togglePassword = () => LoginManager.togglePassword();
 window.handleLogin = () => LoginManager.handleLogin();
 window.toggleSidebar = () => document.querySelector(".sidebar").classList.toggle("active");
+// A função preencherDiaTodo já está definida como window.preencherDiaTodo acima

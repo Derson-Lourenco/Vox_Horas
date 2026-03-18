@@ -129,11 +129,6 @@
             <!-- Aba 2: Retirada de Tempo -->
             <div id="aba-retirada" class="aba-conteudo">
                 <div class="card">
-                    <!-- <h4>
-                        <i class="fas fa-hourglass-half"></i>
-                        Retirada de Tempo
-                    </h4> -->
-
                     <div class="grid-3">
                         <div>
                             <label><i class="far fa-calendar-alt inline-icon"></i>Data</label>
@@ -158,20 +153,26 @@
                         <span>Tempo a Retirar: <strong>0 minutos</strong></span>
                     </div>
 
-                    <div class="grid-2">
-                        <div>
+                    <div class="grid-2" style="display: flex; align-items: flex-end; gap: 1rem;">
+                        <div style="flex: 1;">
                             <label><i class="fas fa-play-circle inline-icon"></i>Hora Inicial</label>
                             <input type="time" id="inicio">
                         </div>
-                        <div>
+                        <div style="flex: 1;">
                             <label><i class="fas fa-stop-circle inline-icon"></i>Hora Final</label>
                             <input type="time" id="fim">
+                        </div>
+                        <div style="flex: 0 0 auto;">
+                            <button type="button" onclick="preencherDiaTodo()" class="btn-success"
+                                style="height: 48px; min-width: 100px; margin-bottom: 1rem;">
+                                <i class="fas fa-calendar-day"></i>
+                                Dia todo
+                            </button>
                         </div>
                     </div>
 
                     <label><i class="fas fa-pen inline-icon"></i>Motivo</label>
                     <textarea id="motivo" placeholder="Descreva o motivo da retirada..." rows="3"></textarea>
-
                     <div class="btn-group">
                         <button onclick="adicionarRetirada()">
                             <i class="fas fa-plus-circle"></i>
