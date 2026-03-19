@@ -484,12 +484,19 @@ const ProcessadorTabela = {
                 continue;
             }
 
-            if (status === "RV" || status === "RC") {
+            const linhaCompleta = normalizar(linhas[i]);
+
+            if (
+                status === "RV" ||
+                status === "RC" ||
+                linhaCompleta.includes(" RV ") ||
+                linhaCompleta.includes(" RC ")
+            ) {
                 remarcacao++;
                 continue;
             }
 
-            if (status.includes("OK") || status.includes("FEITO") || status.includes("ESCALONAMENTO")) {
+            if (status.includes("OK") || status.includes("FEITO")) {
                 execucao++;
                 const valor = calcularValorServico(servico);
                 totalExecutado += valor;
@@ -497,9 +504,9 @@ const ProcessadorTabela = {
                 if (!mapa[servicoOriginal]) mapa[servicoOriginal] = 0;
                 mapa[servicoOriginal] += 1;
 
-                if (servico.includes("TRATATIVA CS")) tratativasCS++;
-                if (servico.includes("INFRAESTRUTURA")) infraestrutura++;
-                if (servico.includes("NIVEL 2")) resolucaoN2++;
+                if (servico.includes("TRATAT")) tratativasCS++;
+                if (servico.includes("INFRA")) infraestrutura++;
+                if (servico.includes("N2") || servico.includes("NIVEL 2")) resolucaoN2++;
             }
         }
 
