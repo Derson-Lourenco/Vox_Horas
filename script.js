@@ -496,6 +496,22 @@ const ProcessadorTabela = {
                 continue;
             }
 
+            // 🔥 NOVOS TIPOS (SEPARADOS)
+            if (linhaCompleta.includes("TRATAT")) {
+                tratativasCS++;
+                continue;
+            }
+
+            if (linhaCompleta.includes("INFRA")) {
+                infraestrutura++;
+                continue;
+            }
+
+            if (linhaCompleta.includes("NIVEL 2") || linhaCompleta.includes("N2")) {
+                resolucaoN2++;
+                continue;
+            }
+
             if (status.includes("OK") || status.includes("FEITO")) {
                 execucao++;
                 const valor = calcularValorServico(servico);
@@ -504,9 +520,9 @@ const ProcessadorTabela = {
                 if (!mapa[servicoOriginal]) mapa[servicoOriginal] = 0;
                 mapa[servicoOriginal] += 1;
 
-                if (servico.includes("TRATAT")) tratativasCS++;
-                if (servico.includes("INFRA")) infraestrutura++;
-                if (servico.includes("N2") || servico.includes("NIVEL 2")) resolucaoN2++;
+                if (linhaCompleta.includes("TRATAT")) tratativasCS++;
+                if (linhaCompleta.includes("INFRA")) infraestrutura++;
+                if (linhaCompleta.includes("NIVEL 2") || linhaCompleta.includes("N2")) resolucaoN2++;
             }
         }
 
