@@ -138,6 +138,134 @@ body {
     line-height: 1.6;
     color: white;
 }
+/* ===== ESTILOS PARA OS BOTÕES DE RÁDIO SOLO/DUPLA ===== */
+
+/* Container do nome e rádios */
+.equipe-bloco > div[style*="display: flex"] {
+    background: transparent !important;
+    padding: 0 !important;
+    margin-bottom: 1.5rem !important;
+    gap: 1rem !important;
+    align-items: center !important; /* Centraliza verticalmente */
+}
+
+/* Campo de nome */
+.equipe-bloco .nomeTecnico {
+    border: 2px solid #e2e8f0 !important;
+    border-radius: 12px !important;
+    padding: 0.8rem 1rem !important;
+    font-size: 0.95rem !important;
+    transition: all 0.2s ease !important;
+    background: white !important;
+    height: 48px !important; /* Altura fixa para alinhamento */
+    box-sizing: border-box !important;
+}
+
+.equipe-bloco .nomeTecnico:focus {
+    border-color: #E8465D !important;
+    box-shadow: 0 0 0 3px rgba(232, 70, 93, 0.1) !important;
+    outline: none !important;
+}
+
+/* Grupo de rádios */
+.equipe-bloco > div[style*="display: flex"] > div[style*="display: flex"] {
+    background: #f1f5f9 !important;
+    padding: 0.4rem !important;
+    border-radius: 40px !important;
+    gap: 0.3rem !important;
+    display: flex !important;
+    height: 48px !important; /* Mesma altura do input */
+    align-items: center !important; /* Centraliza o conteúdo verticalmente */
+    box-sizing: border-box !important;
+}
+
+/* Labels dos rádios - TODOS começam com estilo padrão */
+.equipe-bloco label[style*="cursor: pointer"] {
+    padding: 0.4rem 1.2rem !important; /* Ajuste no padding */
+    border-radius: 30px !important;
+    font-weight: 600 !important;
+    font-size: 0.9rem !important;
+    transition: all 0.2s ease !important;
+    margin: 0 !important;
+    cursor: pointer !important;
+    color: #64748b !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    height: 100% !important; /* Ocupa toda altura do grupo */
+    line-height: 1 !important;
+    white-space: nowrap !important;
+}
+
+/* Label com rádio CHECKED - usando seletores mais específicos */
+.equipe-bloco input[type="radio"][value="Solo"]:checked + label,
+.equipe-bloco input[type="radio"][value="Dupla"]:checked + label {
+    background: #E8465D !important;
+    color: white !important;
+    box-shadow: 0 4px 10px rgba(232, 70, 93, 0.3) !important;
+}
+
+/* Fallback para navegadores que não suportam :has */
+.equipe-bloco label:has(input[type="radio"]:checked) {
+    background: #E8465D !important;
+    color: white !important;
+    box-shadow: 0 4px 10px rgba(232, 70, 93, 0.3) !important;
+}
+
+/* Hover nos labels */
+.equipe-bloco label[style*="cursor: pointer"]:hover {
+    background: rgba(255, 255, 255, 0.5) !important;
+    color: #334155 !important;
+}
+
+/* Remove os estilos inline fixos que estavam atrapalhando */
+.equipe-bloco label[style*="background: #ffffff"] {
+    background: transparent !important;
+}
+
+.equipe-bloco label[style*="box-shadow"] {
+    box-shadow: none !important;
+}
+
+/* Esconde os inputs rádio originais */
+.equipe-bloco input[type="radio"] {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    border: 0 !important;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .equipe-bloco > div[style*="display: flex"] {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+    
+    .equipe-bloco > div[style*="display: flex"] > div[style*="display: flex"] {
+        justify-content: center !important;
+        width: 100% !important;
+    }
+    
+    .equipe-bloco label[style*="cursor: pointer"] {
+        flex: 1 !important;
+        text-align: center !important;
+        padding: 0.4rem 0.5rem !important;
+    }
+}
+
+/* Ajuste fino para desktop */
+@media (min-width: 769px) {
+    .equipe-bloco > div[style*="display: flex"] > div[style*="display: flex"] {
+        min-width: 180px !important; /* Largura mínima para o grupo */
+    }
+}
 
 .features {
     margin-top: auto;

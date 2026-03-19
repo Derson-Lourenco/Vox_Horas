@@ -836,23 +836,37 @@ const UI = {
 
         const bloco = document.createElement("div");
         bloco.className = "equipe-bloco";
+
+        // Cria um nome único para o grupo de rádio
+        const radioName = "equipe-" + Date.now() + "-" + Math.random().toString(36).substr(2, 9);
+
         bloco.innerHTML = `
-            <h5><i class="fas fa-user-hard-hat"></i>Técnico de Campo</h5>
-            <label><i class="fas fa-user inline-icon"></i>Nome</label>
-            <input type="text" class="nomeTecnico" placeholder="Nome do Técnico">
-            <label><i class="fas fa-table inline-icon"></i>Tabela de Dados</label>
-            <textarea class="tabelaDados" rows="6" placeholder="Cole aqui a tabela do técnico..."></textarea>
-            <label><i class="fas fa-pen inline-icon"></i>Justificativas</label>
-            <div class="justificativas-container"></div>
-            <button class="btn-add-just" onclick="adicionarJustificativa(this.previousElementSibling)">
-                <i class="fas fa-plus-circle"></i> Adicionar Justificativa
-            </button>
-            <div class="btn-group" style="margin-top: 1rem;">
-                <button class="btn-danger" onclick="this.parentElement.parentElement.remove()">
-                    <i class="fas fa-trash-alt"></i> Remover Técnico
-                </button>
+        <h5><i class="fas fa-user-hard-hat"></i>Técnico de Campo</h5>
+        <label><i class="fas fa-user inline-icon"></i>Nome</label>
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+            <input type="text" class="nomeTecnico" placeholder="Nome do Técnico" style="flex: 1;">
+            <div style="display: flex; gap: 0.5rem; background: #f0f2f5; padding: 0.3rem; border-radius: 20px;">
+                <label style="display: flex; align-items: center; gap: 0.3rem; padding: 0.2rem 0.5rem; cursor: pointer; border-radius: 15px; background: ${"#ffffff"}; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <input type="radio" name="${radioName}" value="Solo" class="tipo-equipe" checked> Solo
+                </label>
+                <label style="display: flex; align-items: center; gap: 0.3rem; padding: 0.2rem 0.5rem; cursor: pointer; border-radius: 15px; background: transparent;">
+                    <input type="radio" name="${radioName}" value="Dupla" class="tipo-equipe"> Dupla
+                </label>
             </div>
-        `;
+        </div>
+        <label><i class="fas fa-table inline-icon"></i>Tabela de Dados</label>
+        <textarea class="tabelaDados" rows="6" placeholder="Cole aqui a tabela do técnico..."></textarea>
+        <label><i class="fas fa-pen inline-icon"></i>Justificativas</label>
+        <div class="justificativas-container"></div>
+        <button class="btn-add-just" onclick="adicionarJustificativa(this.previousElementSibling)">
+            <i class="fas fa-plus-circle"></i> Adicionar Justificativa
+        </button>
+        <div class="btn-group" style="margin-top: 1rem;">
+            <button class="btn-danger" onclick="this.parentElement.parentElement.remove()">
+                <i class="fas fa-trash-alt"></i> Remover Técnico
+            </button>
+        </div>
+    `;
         container.appendChild(bloco);
     },
 
@@ -1121,6 +1135,7 @@ const UI = {
         }
 
         const nomes = document.querySelectorAll(".nomeTecnico");
+        const tiposEquipe = document.querySelectorAll(".tipo-equipe:checked"); // ADICIONADO
         const tabelas = document.querySelectorAll(".tabelaDados");
         const blocos = document.querySelectorAll(".equipe-bloco");
 
@@ -1148,6 +1163,7 @@ const UI = {
 
         for (let i = 0; i < nomes.length; i++) {
             const nome = nomes[i].value.trim();
+            const tipoEquipe = tiposEquipe[i]?.value || "Solo"; // ADICIONADO: pega o valor do rádio
             const dados = ProcessadorTabela.processar(tabelas[i].value);
 
             if (!nome || !dados) continue;
@@ -1158,7 +1174,8 @@ const UI = {
             totalCancelamentoGeral += dados.cancelamento;
 
             relatorio += `-----------------------------------------------\n\n`;
-            relatorio += `Equipe Técnica: ${nome}\n\n`;
+            relatorio += `Equipe Técnica: ${nome}\n`;
+            relatorio += `Tipo: ${tipoEquipe}\n\n`; // ADICIONADO: linha do tipo de equipe
             relatorio += `    • Protocolos Planejamento: ${dados.planejamento}\n`;
             relatorio += `    • Protocolos Execução: ${dados.execucao}\n`;
             relatorio += `    • Protocolos Remarcação: ${dados.remarcacao}\n`;
@@ -1207,7 +1224,13 @@ const UI = {
             }
 
             relatorio += `\n`;
-            dadosParaSalvar.equipes.push({nome, tabela: tabelas[i].value, justificativas: justificativasManuais});
+            // ADICIONADO: salva o tipoEquipe junto com os outros dados
+            dadosParaSalvar.equipes.push({
+                nome,
+                tipoEquipe, // NOVO CAMPO
+                tabela: tabelas[i].value,
+                justificativas: justificativasManuais,
+            });
         }
 
         let blocoTotais = ``;
@@ -1249,20 +1272,36 @@ const UI = {
             if (dados.equipes && dados.equipes.length > 0) {
                 dados.equipes.forEach((equipe) => {
                     this.adicionarEquipe();
-                    const bloco =
-                        document.querySelectorAll(".equipe-bloco")[
-                            document.querySelectorAll(".equipe-bloco").length - 1
-                        ];
+                    const blocos = document.querySelectorAll(".equipe-bloco");
+                    const bloco = blocos[blocos.length - 1];
+
+                    // Restaura o nome
                     bloco.querySelector(".nomeTecnico").value = equipe.nome || "";
+
+                    // ADICIONADO: Restaura o tipo de equipe (Solo/Dupla)
+                    const radios = bloco.querySelectorAll(".tipo-equipe");
+                    radios.forEach((radio) => {
+                        if (radio.value === (equipe.tipoEquipe || "Solo")) {
+                            radio.checked = true;
+                            // Destaca visualmente o selecionado
+                            radio.closest("label").style.background = "#ffffff";
+                            radio.closest("label").style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+                        } else {
+                            radio.closest("label").style.background = "transparent";
+                            radio.closest("label").style.boxShadow = "none";
+                        }
+                    });
+
+                    // Restaura a tabela
                     bloco.querySelector(".tabelaDados").value = equipe.tabela || "";
 
+                    // Restaura as justificativas
                     const container = bloco.querySelector(".justificativas-container");
                     if (container && equipe.justificativas) {
                         equipe.justificativas.forEach((just) => {
                             this.adicionarJustificativa(container);
-                            container.querySelectorAll(".justificativa-texto")[
-                                container.querySelectorAll(".justificativa-texto").length - 1
-                            ].value = just;
+                            const textos = container.querySelectorAll(".justificativa-texto");
+                            textos[textos.length - 1].value = just;
                         });
                     }
                 });
