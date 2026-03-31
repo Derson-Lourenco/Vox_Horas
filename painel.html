@@ -4,12 +4,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>THERON · Painel Técnico</title>
+    <title>THERON · Painel Técnico V.3</title>
     <link rel="icon" type="image/png" href="/img/image-removebg-preview (1).png">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
     <!-- SweetAlert2 CSS e JS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Chart.js para gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -37,11 +43,15 @@
                 <ul>
                     <li class="nav-item active" onclick="mudarAba('ativacao')">
                         <i class="fas fa-clipboard-list"></i>
-                        <span>Relatório</span>
+                        <span>Relatório / Retirada</span>
                     </li>
-                    <li class="nav-item" onclick="mudarAba('retirada')">
-                        <i class="fas fa-hourglass-half"></i>
-                        <span>Retirada de Tempo</span>
+                    <li class="nav-item" onclick="mudarAba('busca')">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Busca</span>
+                    </li>
+                    <li class="nav-item" onclick="mudarAba('busca-personalizada')">
+                        <i class="fas fa-chart-pie"></i>
+                        <span>Busca Personalizada</span>
                     </li>
                 </ul>
             </nav>
@@ -52,7 +62,7 @@
                     <span>Sair</span>
                 </button>
                 <div class="sidebar-version">
-                    v2.2.1
+                    v3.0.0
                 </div>
             </div>
         </aside>
@@ -61,7 +71,7 @@
         <main class="main-content">
             <!-- Header do conteúdo -->
             <div class="content-header">
-                <h1 id="page-title"></h1>
+                <h1 id="page-title">Relatório / Retirada de Tempo</h1>
                 <div class="header-actions">
                     <div class="date-badge">
                         <i class="far fa-calendar-alt"></i>
@@ -70,26 +80,21 @@
                 </div>
             </div>
 
-            <!-- Aba 1: Relatório de Ativação -->
+            <!-- Aba 1: Relatório de Ativação V.3 -->
             <div id="aba-ativacao" class="aba-conteudo ativo">
                 <div class="card">
-                    <!-- <h4>
-                        <i class="fas fa-clipboard-list"></i>
-                        Informações do Relatório
-                    </h4> -->
-
                     <div class="row">
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <label><i class="far fa-calendar-alt inline-icon"></i>Data</label>
                             <input type="date" id="data-ativacao">
                         </div>
 
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <label><i class="fas fa-map-marker-alt inline-icon"></i>Cidade - Estado</label>
                             <input type="text" id="cidade" placeholder="Picos - PI">
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label><i class="fas fa-user-cog inline-icon"></i>Nome do Técnico Interno</label>
                             <input type="text" id="responsavel" placeholder="Responsável">
                         </div>
@@ -97,100 +102,523 @@
 
                     <hr>
 
-                    <div id="equipes"></div>
+                    <!-- Área de seleção de técnicos da planilha -->
+                    <div class="tecnicos-selecao-area">
+                        <div class="tecnicos-header">
+                            <h5><i class="fas fa-users"></i> Técnicos da Planilha</h5>
+                            <div class="tecnicos-actions">
+                                <div class="search-tecnicos">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" id="busca-tecnicos" placeholder="Buscar técnico...">
+                                </div>
+                                <button type="button" onclick="selecionarTodosTecnicos()"
+                                    class="btn-small btn-select-all">
+                                    <i class="fas fa-check-double"></i> Selecionar Todos
+                                </button>
+                                <button type="button" onclick="desmarcarTodosTecnicos()" class="btn-small btn-clear">
+                                    <i class="fas fa-times"></i> Desmarcar Todos
+                                </button>
+                                <button type="button" onclick="carregarTecnicosDaPlanilha()"
+                                    class="btn-small btn-refresh">
+                                    <i class="fas fa-sync-alt"></i> Recarregar
+                                </button>
+                                <div class="filter-dropdown-container">
+                                    <button class="filter-main-btn" id="filterMainBtn" onclick="toggleFilterDropdown()">
+                                        <i class="fas fa-filter"></i>
+                                        <span id="filterStatusText">Filtro Inativo</span>
+                                        <i class="fas fa-chevron-down"></i>
+                                    </button>
+                                    <div class="filter-dropdown-menu" id="filterDropdownMenu">
+                                        <div class="filter-dropdown-header">
+                                            <i class="fas fa-sliders-h"></i>
+                                            <span>Gerenciar Filtro de Equipes</span>
+                                        </div>
+                                        <div class="filter-dropdown-body">
+                                            <div class="filter-info" id="filterInfo">
+                                                <i class="fas fa-info-circle"></i>
+                                                <span>Nenhum filtro ativo</span>
+                                            </div>
+                                            <div class="filter-actions">
+                                                <button class="filter-action-btn" id="filterActivateBtn"
+                                                    onclick="ativarFiltroEquipes()">
+                                                    <i class="fas fa-play"></i>
+                                                    <span>Ativar Filtro</span>
+                                                </button>
+                                                <button class="filter-action-btn" id="filterDeactivateBtn"
+                                                    onclick="desativarFiltroEquipes()" style="display: none;">
+                                                    <i class="fas fa-stop"></i>
+                                                    <span>Desativar Filtro</span>
+                                                </button>
+                                                <button class="filter-action-btn filter-danger" id="filterDeleteBtn"
+                                                    onclick="excluirFiltroEquipes()">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                    <span>Excluir Filtro</span>
+                                                </button>
+                                                <button class="filter-action-btn filter-edit" id="filterEditBtn"
+                                                    onclick="editarFiltroEquipes()">
+                                                    <i class="fas fa-edit"></i>
+                                                    <span>Editar Filtro</span>
+                                                </button>
+                                            </div>
+                                            <div class="filter-preview" id="filterPreview" style="display: none;">
+                                                <div class="filter-preview-title">
+                                                    <i class="fas fa-users"></i>
+                                                    <span>Técnicos no filtro:</span>
+                                                </div>
+                                                <div class="filter-preview-list" id="filterPreviewList"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="lista-tecnicos" class="tecnicos-lista">
+                            <div class="loading-tecnicos">
+                                <i class="fas fa-spinner fa-pulse"></i> Carregando técnicos...
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div id="equipes-selecionadas"></div>
 
                     <div class="btn-group">
-                        <button onclick="adicionarEquipe()" class="btn-success">
-                            <i class="fas fa-plus-circle"></i>
-                            Adicionar Técnico de Campo
+                        <button onclick="gerarRelatorioCompleto()" class="btn-primary" style="background: #E8465D;">
+                            <i class="fas fa-chart-line"></i>
+                            Gerar Relatório + Retirada de Tempo
                         </button>
-                        <button onclick="carregarRelatorio()" class="btn-load">
-                            <i class="fas fa-folder-open"></i>
-                            Carregar Relatório
-                        </button>
-                        <button onclick="emitirRelatorio()" class="btn-primary">
-                            <i class="fas fa-check-double"></i>
-                            Finalizar e Emitir Relatório
-                        </button>
-                        <button onclick="apagarRelatorio()" class="btn-danger">
-                            <i class="fas fa-trash-alt"></i>
-                            Apagar Relatório
-                        </button>
-                        <button onclick="copiarRelatorio()" class="btn-copy" style="display: none;">
-                            <i class="fas fa-copy"></i>
-                            Copiar Relatório
+                        <button onclick="recarregarPagina()" class="btn-load" style="background: #4a6382;">
+                            <i class="fas fa-sync-alt"></i>
+                            Recarregar Página
                         </button>
                     </div>
                 </div>
 
-                <div id="resultado-ativacao" class="relatorio-final"></div>
+                <!-- Container com duas colunas: Relatório e Retirada -->
+                <div class="resultado-container" id="resultado-container" style="display: none;">
+                    <!-- Coluna Esquerda: Relatório -->
+                    <div class="relatorio-col">
+                        <div class="card-resultado">
+                            <div class="card-resultado-header">
+                                <div class="card-header-icon">
+                                    <i class="fas fa-clipboard-list"></i>
+                                </div>
+                                <h3>RELATÓRIO DE ATIVIDADE</h3>
+                                <button onclick="copiarTexto('resultado-ativacao')" class="btn-copy-modern">
+                                    <i class="fas fa-copy"></i> Copiar
+                                </button>
+                            </div>
+                            <div class="card-resultado-body">
+                                <div id="resultado-ativacao" class="relatorio-final"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Coluna Direita: Retirada de Tempo -->
+                    <div class="retirada-col">
+                        <div class="card-resultado">
+                            <div class="card-resultado-header">
+                                <div class="card-header-icon">
+                                    <i class="fas fa-hourglass-half"></i>
+                                </div>
+                                <h3>RETIRADA DE TEMPO</h3>
+                                <button onclick="copiarTexto('resultado-retirada-unificado')" class="btn-copy-modern">
+                                    <i class="fas fa-copy"></i> Copiar
+                                </button>
+                            </div>
+                            <div class="card-resultado-body">
+                                <div id="resultado-retirada-unificado" class="retirada-resultado"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Aba 2: Retirada de Tempo -->
             <div id="aba-retirada" class="aba-conteudo">
                 <div class="card">
-                    <div class="grid-3">
-                        <div>
-                            <label><i class="far fa-calendar-alt inline-icon"></i>Data</label>
-                            <input type="date" id="data-retirada">
+
+                    <!-- Área de seleção de técnicos da planilha -->
+                    <div class="tecnicos-selecao-area">
+                        <div class="tecnicos-header flex-column align-items-start">
+
+                            <!-- TÍTULO -->
+                            <h5 class="mb-2">
+                                <i class="fas fa-users"></i> Técnicos da Planilha
+                            </h5>
+
+                            <!-- CONTROLES (TUDO EMBAIXO DO TÍTULO) -->
+                            <div class="tecnicos-actions w-100">
+
+                                <!-- DATA -->
+                                <div class="data-inline">
+                                    <label>
+                                        <i class="far fa-calendar-alt inline-icon"></i> Data
+                                    </label>
+                                    <input type="date" id="data-retirada">
+                                </div>
+
+                                <!-- BUSCA -->
+                                <div class="search-tecnicos">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" placeholder="Buscar técnico...">
+                                </div>
+
+                                <!-- BOTÕES -->
+                                <button type="button" onclick="selecionarTodosTecnicosRetirada()"
+                                    class="btn-small btn-select-all">
+                                    <i class="fas fa-check-double"></i> Selecionar Todos
+                                </button>
+
+                                <button type="button" onclick="desmarcarTodosTecnicosRetirada()"
+                                    class="btn-small btn-clear">
+                                    <i class="fas fa-times"></i> Desmarcar Todos
+                                </button>
+
+                                <button type="button" onclick="carregarTecnicosRetirada()"
+                                    class="btn-small btn-refresh">
+                                    <i class="fas fa-sync-alt"></i> Recarregar
+                                </button>
+
+                                <!-- FILTROS -->
+                                <button id="btnFiltroAtivoRetirada" onclick="toggleFiltroEquipesRetirada()"
+                                    class="btn-small btn-filter">
+                                    <i class="fas fa-filter"></i> Filtro Inativo
+                                </button>
+
+                                <button onclick="excluirFiltroEquipesRetirada()" class="btn-small btn-filter-excluir">
+                                    <i class="fas fa-trash-alt"></i> Excluir Filtro
+                                </button>
+
+                            </div>
                         </div>
-                        <div>
-                            <label><i class="fas fa-user-cog inline-icon"></i>Técnico</label>
-                            <input type="text" id="tecnico" placeholder="Digite o nome do técnico">
-                        </div>
-                        <div>
-                            <label><i class="fas fa-clock inline-icon"></i>Carga Horária</label>
-                            <select id="jornada">
-                                <option value="">Selecione</option>
-                                <option value="Comercial">Comercial</option>
-                                <option value="12/36">12/36</option>
-                            </select>
+                        <div id="lista-tecnicos-retirada" class="tecnicos-lista">
+                            <div class="loading-tecnicos"><i class="fas fa-spinner fa-pulse"></i> Carregando técnicos...
+                            </div>
                         </div>
                     </div>
 
-                    <div class="total-box" id="tempoTotal">
-                        <i class="fas fa-clock"></i>
-                        <span>Tempo a Retirar: <strong>0 minutos</strong></span>
-                    </div>
+                    <hr>
 
-                    <div class="grid-2" style="display: flex; align-items: flex-end; gap: 1rem;">
-                        <div style="flex: 1;">
-                            <label><i class="fas fa-play-circle inline-icon"></i>Hora Inicial</label>
-                            <input type="time" id="inicio">
-                        </div>
-                        <div style="flex: 1;">
-                            <label><i class="fas fa-stop-circle inline-icon"></i>Hora Final</label>
-                            <input type="time" id="fim">
-                        </div>
-                        <div style="flex: 0 0 auto;">
-                            <button type="button" onclick="preencherDiaTodo()" class="btn-success"
-                                style="height: 48px; min-width: 100px; margin-bottom: 1rem;">
-                                <i class="fas fa-calendar-day"></i>
-                                Dia todo
-                            </button>
-                        </div>
-                    </div>
+                    <div id="equipes-selecionadas-retirada"></div>
 
-                    <label><i class="fas fa-pen inline-icon"></i>Motivo</label>
-                    <textarea id="motivo" placeholder="Descreva o motivo da retirada..." rows="3"></textarea>
                     <div class="btn-group">
-                        <button onclick="adicionarRetirada()">
-                            <i class="fas fa-plus-circle"></i>
-                            Adicionar período
+                        <button onclick="calcularRetiradaTodosTecnicos()" style="background: #28a745;">
+                            <i class="fas fa-calculator"></i> Calcular Retirada para Todos
                         </button>
-                        <button onclick="finalizarRetirada()">
-                            <i class="fas fa-check-double"></i>
-                            Finalizar dia
+                        <button onclick="buscarRetiradasTodosTecnicos()">
+                            <i class="fas fa-search"></i> Buscar Retiradas Salvas
                         </button>
-                        <button onclick="limparDataRetirada()" class="btn-danger">
-                            <i class="fas fa-trash-alt"></i>
-                            Limpar esta data
+                        <button onclick="excluirRetiradasTodosTecnicos()" class="btn-danger">
+                            <i class="fas fa-trash-alt"></i> Excluir Todas Retiradas
                         </button>
                     </div>
 
                     <hr>
 
                     <div id="resultado-retirada"></div>
+                </div>
+            </div>
+
+            <!-- Aba 3: Busca Avançada -->
+            <div id="aba-busca" class="aba-conteudo">
+                <div class="card">
+                    <div class="filtros-busca">
+                        <div class="filtro-item">
+                            <label>
+                                <i class="far fa-calendar-alt me-1 text-danger"></i> Data Inicial
+                            </label>
+                            <input type="date" id="busca-data-inicio" class="form-control rounded-4 py-2">
+                        </div>
+                        <div class="filtro-item">
+                            <label>
+                                <i class="far fa-calendar-alt me-1 text-danger"></i> Data Final
+                            </label>
+                            <input type="date" id="busca-data-fim" class="form-control rounded-4 py-2">
+                        </div>
+                        <div class="btn-item">
+                            <button onclick="buscarDadosPorPeriodo()" class="btn btn-buscar-premium px-4 py-2">
+                                <i class="fas fa-search me-2"></i>
+                                <span>Buscar</span>
+                            </button>
+                        </div>
+                    </div>
+                    <hr>
+
+                    <!-- Cards de Resumo -->
+                    <div class="summary-cards">
+                        <div class="summary-card">
+                            <div class="summary-card-icon">
+                                <i class="fas fa-tasks"></i>
+                            </div>
+                            <div class="summary-card-info">
+                                <h3 id="total-planejamento">0</h3>
+                                <p>Protocolos Planejamento</p>
+                            </div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-card-icon">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="summary-card-info">
+                                <h3 id="total-execucao">0</h3>
+                                <p>Protocolos Execução</p>
+                            </div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-card-icon">
+                                <i class="fas fa-exchange-alt"></i>
+                            </div>
+                            <div class="summary-card-info">
+                                <h3 id="total-remarcacao">0</h3>
+                                <p>Protocolos Remarcação</p>
+                            </div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-card-icon">
+                                <i class="fas fa-ban"></i>
+                            </div>
+                            <div class="summary-card-info">
+                                <h3 id="total-cancelamento">0</h3>
+                                <p>Protocolos Cancelamento</p>
+                            </div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-card-icon">
+                                <i class="fas fa-headset"></i>
+                            </div>
+                            <div class="summary-card-info">
+                                <h3 id="total-tratativas">0</h3>
+                                <p>Protocolos Tratativas CS</p>
+                            </div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-card-icon">
+                                <i class="fas fa-network-wired"></i>
+                            </div>
+                            <div class="summary-card-info">
+                                <h3 id="total-infra">0</h3>
+                                <p>Protocolos Infraestrutura</p>
+                            </div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-card-icon">
+                                <i class="fas fa-microchip"></i>
+                            </div>
+                            <div class="summary-card-info">
+                                <h3 id="total-resolucao">0</h3>
+                                <p>Protocolos Resolução N2</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Gráficos -->
+                    <div class="charts-container">
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <i class="fas fa-chart-bar"></i>
+                                <h4>Métricas por Tipo</h4>
+                            </div>
+                            <canvas id="metricasChart" width="400" height="300"></canvas>
+                        </div>
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <i class="fas fa-chart-pie"></i>
+                                <h4>Distribuição Percentual</h4>
+                            </div>
+                            <canvas id="distribuicaoChart" width="400" height="300"></canvas>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Tabela de Resultados -->
+                    <div class="resultados-busca">
+                        <div class="resultados-header">
+                            <h5><i class="fas fa-table"></i> Resultados por Data</h5>
+                            <button onclick="exportarResultadosBusca()" class="btn-export">
+                                <i class="fas fa-file-excel"></i> Exportar
+                            </button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table" id="resultados-tabela">
+                                <thead>
+                                    <tr>
+                                        <th>Data</th>
+                                        <th>Planejamento</th>
+                                        <th>Execução</th>
+                                        <th>Remarcação</th>
+                                        <th>Cancelamento</th>
+                                        <th>Tratativas CS</th>
+                                        <th>Infraestrutura</th>
+                                        <th>Resolução N2</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabela-body">
+                                    <tr>
+                                        <td colspan="8" class="text-center">Nenhum resultado encontrado</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aba 4: Busca Avançada Personalizada (NOVA) -->
+            <div id="aba-busca-personalizada" class="aba-conteudo">
+                <div class="card">
+                    <!-- Filtros de data -->
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label><i class="far fa-calendar-alt inline-icon"></i>Data Inicial</label>
+                            <input type="date" id="personalizada-data-inicio">
+                        </div>
+                        <div class="col-md-4">
+                            <label><i class="far fa-calendar-alt inline-icon"></i>Data Final</label>
+                            <input type="date" id="personalizada-data-fim">
+                        </div>
+                        <div class="col-md-4">
+                            <button onclick="carregarTecnicosPersonalizada()" class="btn-primary"
+                                style="margin-top: 28px; width: 100%;">
+                                <i class="fas fa-sync-alt"></i> Carregar Técnicos
+                            </button>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Área de seleção de técnicos da planilha (COPIADA DO RELATÓRIO) -->
+                    <div class="tecnicos-selecao-area">
+                        <div class="tecnicos-header">
+                            <h5><i class="fas fa-users"></i> Técnicos da Planilha</h5>
+                            <div class="tecnicos-actions">
+                                <div class="search-tecnicos">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" id="busca-tecnicos-personalizada"
+                                        placeholder="Buscar técnico...">
+                                </div>
+                                <button type="button" onclick="selecionarTodosTecnicosPersonalizada()"
+                                    class="btn-small btn-select-all">
+                                    <i class="fas fa-check-double"></i> Selecionar Todos
+                                </button>
+                                <button type="button" onclick="desmarcarTodosTecnicosPersonalizada()"
+                                    class="btn-small btn-clear">
+                                    <i class="fas fa-times"></i> Desmarcar Todos
+                                </button>
+                            </div>
+                        </div>
+                        <div id="lista-tecnicos-personalizada" class="tecnicos-lista">
+                            <div class="loading-tecnicos">
+                                <i class="fas fa-spinner fa-pulse"></i> Selecione um período para carregar os
+                                técnicos...
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Técnicos Selecionados (COPIADO DO RELATÓRIO) -->
+                    <div id="equipes-selecionadas-personalizada"></div>
+
+                    <div class="btn-group">
+                        <button onclick="buscarDadosPersonalizada()" class="btn-primary" style="background: #E8465D;">
+                            <i class="fas fa-chart-line"></i> Buscar Dados
+                        </button>
+                    </div>
+
+                    <!-- Resultados (cards e gráficos) -->
+                    <div id="resultados-personalizada" style="margin-top: 2rem; display: none;">
+                        <div class="summary-cards">
+                            <div class="summary-card">
+                                <div class="summary-card-icon"><i class="fas fa-tasks"></i></div>
+                                <div class="summary-card-info">
+                                    <h3 id="personalizada-planejamento">0</h3>
+                                    <p>Protocolos Planejamento</p>
+                                </div>
+                            </div>
+                            <div class="summary-card">
+                                <div class="summary-card-icon"><i class="fas fa-check-circle"></i></div>
+                                <div class="summary-card-info">
+                                    <h3 id="personalizada-execucao">0</h3>
+                                    <p>Protocolos Execução</p>
+                                </div>
+                            </div>
+                            <div class="summary-card">
+                                <div class="summary-card-icon"><i class="fas fa-exchange-alt"></i></div>
+                                <div class="summary-card-info">
+                                    <h3 id="personalizada-remarcacao">0</h3>
+                                    <p>Protocolos Remarcação</p>
+                                </div>
+                            </div>
+                            <div class="summary-card">
+                                <div class="summary-card-icon"><i class="fas fa-ban"></i></div>
+                                <div class="summary-card-info">
+                                    <h3 id="personalizada-cancelamento">0</h3>
+                                    <p>Protocolos Cancelamento</p>
+                                </div>
+                            </div>
+                            <div class="summary-card">
+                                <div class="summary-card-icon"><i class="fas fa-headset"></i></div>
+                                <div class="summary-card-info">
+                                    <h3 id="personalizada-tratativas">0</h3>
+                                    <p>Protocolos Tratativas CS</p>
+                                </div>
+                            </div>
+                            <div class="summary-card">
+                                <div class="summary-card-icon"><i class="fas fa-network-wired"></i></div>
+                                <div class="summary-card-info">
+                                    <h3 id="personalizada-infra">0</h3>
+                                    <p>Protocolos Infraestrutura</p>
+                                </div>
+                            </div>
+                            <div class="summary-card">
+                                <div class="summary-card-icon"><i class="fas fa-microchip"></i></div>
+                                <div class="summary-card-info">
+                                    <h3 id="personalizada-resolucao">0</h3>
+                                    <p>Protocolos Resolução N2</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <!-- Tabela de resultados por técnico -->
+                        <div class="resultados-busca">
+                            <div class="resultados-header">
+                                <h5><i class="fas fa-table"></i> Resultados por Técnico</h5>
+                                <button onclick="exportarResultadosPersonalizada()" class="btn-export"><i
+                                        class="fas fa-file-excel"></i> Exportar</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="data-table" id="personalizada-tabela">
+                                    <thead>
+                                        <tr>
+                                            <th>Técnico</th>
+                                            <th>Tipo</th>
+                                            <th>Status</th>
+                                            <th>Planejamento</th>
+                                            <th>Execução</th>
+                                            <th>Remarcação</th>
+                                            <th>Cancelamento</th>
+                                            <th>Tratativas</th>
+                                            <th>Infra</th>
+                                            <th>Resolução N2</th>
+                                            <th>Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="personalizada-tabela-body">
+                                        <tr>
+                                            <td colspan="11" class="text-center">Realize uma busca primeiro</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
@@ -201,15 +629,7 @@
         <i class="fas fa-bars"></i>
     </div>
 
-    <script>
-        function toggleSidebar() {
-            document.querySelector('.sidebar').classList.toggle('active');
-        }
-    </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="script.js"></script>
-    <script src="notifications-wrapper.js"></script>
 </body>
 
 </html>

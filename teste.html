@@ -102,3 +102,45 @@
 </body>
 
 </html>
+
+
+
+
+<!-- Aba 2: Retirada de Tempo -->
+<div id="aba-retirada" class="aba-conteudo">
+    <div class="card">
+        <div class="grid-3">
+            <div>
+                <label><i class="far fa-calendar-alt inline-icon"></i>Data</label>
+                <input type="date" id="data-retirada">
+            </div>
+            <div>
+                <label><i class="fas fa-user-cog inline-icon"></i>Técnico</label>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <input type="text" id="tecnico" placeholder="Digite o nome do técnico" style="flex: 1;">
+                    <div class="radio-group" style="height: 48px; display: flex; align-items: center;">
+                        <label class="radio-label radio-selected">
+                            <input type="radio" name="tipo-equipe-retirada" value="Solo" class="tipo-equipe-retirada"
+                                checked> Solo
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="tipo-equipe-retirada" value="Dupla" class="tipo-equipe-retirada">
+                            Dupla
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <label><i class="fas fa-clock inline-icon"></i>Carga Horária</label>
+                <select id="jornada">
+                    <option value="">Selecione</option>
+                    <option value="Comercial">Comercial</option>
+                    <option value="12/36">12/36</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Resto do conteúdo permanece igual -->
+        ...
+    </div>
+</div>
